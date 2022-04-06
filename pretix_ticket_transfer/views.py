@@ -8,7 +8,6 @@ from django_scopes import scope
 
 from django.utils.translation import gettext_lazy as _
 from django.utils.http import urlencode
-from django.db import transaction
 
 from django.views.generic import TemplateView
 from pretix.base.models import Event, Order, Item, OrderPosition
@@ -29,63 +28,7 @@ from django.middleware import csrf
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
 
-from pretix.base.services.orders import OrderChangeManager
-
-
-
-from pprint import pprint
-
-class TicketTransferChangeManager(OrderChangeManager):
-    def commit(self, check_quotas=True):
-        if self._committed:
-            # an order change can only be committed once
-            raise OrderError(error_messages['internal'])
-        self._committed = True
-
-        if not self._operations:
-            # Do nothing
-            return
-
-        # finally, incorporate difference in payment fees
-        self._payment_fee_diff()
-
-        with transaction.atomic():
-            with self.order.event.lock():
-                if self.order.status in (Order.STATUS_PENDING, Order.STATUS_PAID):
-                    if check_quotas:
-                        self._check_quotas()
-                    self._check_seats()
-                self._check_complete_cancel()
-                self._check_and_lock_memberships()
-                try:
-                    self._perform_operations()
-                except TaxRule.SaleNotAllowed:
-                    raise OrderError(self.error_messages['tax_rule_country_blocked'])
-            self._recalculate_total_and_payment_fee()
-            self._check_paid_price_change()
-            self._check_paid_to_free()
-            if self.order.status in (Order.STATUS_PENDING, Order.STATUS_PAID):
-                self._reissue_invoice()
-            self._clear_tickets_cache()
-            self.order.touch()
-            self.order.create_transactions()
-            if self.split_order:
-                self.split_order.create_transactions()
-
-        if self.notify:
-            notify_user_changed_order(
-                self.order, self.user, self.auth,
-                self._invoices if self.event.settings.invoice_email_attachment else []
-            )
-            if self.split_order:
-                notify_user_changed_order(
-                    self.split_order, self.user, self.auth,
-                    list(self.split_order.invoices.all()) if self.event.settings.invoice_email_attachment else []
-                )
-
-        order_changed.send(self.order.event, order=self.order)
-
-
+from .user_split import user_split
 
 
 class TicketTransferSettingsForm(SettingsForm):
@@ -157,24 +100,20 @@ class TicketTransfer(EventViewMixin, OrderDetailMixin, TemplateView):
     def get_context_data(self, *args, **kwargs):
         ctx = super().get_context_data(*args, **kwargs)
         ctx['order'] = self.order
+        ctx['orderpositions'] = self.order.positions.select_related('item')
         return ctx
 
     def post(self, request, *args, **kwargs):
         order = self.order
-        event = order.event
 
         if order.status != Order.STATUS_PAID:
           raise Http404()
 
         error = False
-        pos = []
-        totalprice = 0
 
         pids = request.POST.getlist('pos[]')
         email = request.POST.get('email')
         email_repeat = request.POST.get('email_repeat')
-
-        #confirm = request.POST.getlist('confirm')
 
         if email:
           try:
@@ -189,76 +128,17 @@ class TicketTransfer(EventViewMixin, OrderDetailMixin, TemplateView):
             messages.warning( self.request, error),
 
           else:
+            user_split(order,pids,data={'email': email})
 
-            with transaction.atomic():
-
-              print( 'start' )
-              positions = OrderPosition.objects.filter(pk__in=pids).select_for_update(nowait=True).all()
-              ocm = TicketTransferChangeManager(
-                  order,
-                  #user='ticket-transfer',
-                  notify=False,
-                  reissue_invoice=False
-              )
-
-              for p in positions:
-                if not p.item.admission:
-                  continue
-                if event.settings.get( 'pretix_ticket_transfer_items_all' ) == None:
-                  continue   # default to false
-                elif event.settings.get( 'pretix_ticket_transfer_items_all' ) == False:
-                  if p.item.id not in json.loads( event.settings.get( 'pretix_ticket_transfer_items' )):
-                    continue
-
-                p.attendee_name_parts = ''
-                ocm.split(p)
-
-                pos.append( p )
-                totalprice+= p.price
-
-              pprint({'pos':pos})
-
-              if len(pos) < 1:
-                raise Http404()
-
-
-              ocm.commit(check_quotas=False)
-              #with ocm.order.event.lock():
-              #  #ocm._check_complete_cancel()
-              #  ocm._check_and_lock_memberships()
-              #  try:
-              #      ocm._perform_operations()
-              #  except TaxRule.SaleNotAllowed:
-              #      raise OrderError(ocm.error_messages['tax_rule_country_blocked'])
-
-              #ocm._recalculate_total_and_payment_fee()
-              #ocm._check_paid_price_change()
-              #ocm._check_paid_to_free()
-              #if ocm.order.status in (Order.STATUS_PENDING, Order.STATUS_PAID):
-              #    ocm._reissue_invoice()
-              #ocm._clear_tickets_cache()
-              #ocm.order.touch()
-              #ocm.order.create_transactions()
-              #if ocm.split_order:
-              #    ocm.split_order.create_transactions()
-
-              #ocm.split_order.email = email
-              #ocm.split_order.save()
-
-              pprint({ 'ocm-split_order': ocm.split_order })
-
-
-            messages.success( self.request, 'send' ),
-            ctx = {
-              'order': order,
-              'pos': pos,
-              'totalprice': totalprice,
-              'email': email,
-              'success': True
-            }
-            return self.render_to_response(ctx)
+            messages.success( self.request, _('Ticket(s) transferiert') ),
+            return redirect(
+                eventreverse(
+                    self.request.event,
+                    "presale:event.order",
+                    kwargs={"order": self.order.code, "secret": self.order.secret} ))
 
         pos = []
+        totalprice = 0
         for id in request.POST.getlist('pos[]'):
           position = OrderPosition.objects.get(pk=id)
           pos.append( position )
@@ -267,7 +147,6 @@ class TicketTransfer(EventViewMixin, OrderDetailMixin, TemplateView):
         if len(pos) < 1:
           raise Http404()
 
-
         ctx = {
           'csrf_token': csrf.get_token(request),
           'order': order,
@@ -275,26 +154,4 @@ class TicketTransfer(EventViewMixin, OrderDetailMixin, TemplateView):
           'totalprice': totalprice,
           'email': email
         }
-        #return self.get(request, *args, **kwargs)
         return self.render_to_response(ctx)
-
-
-            #meta = position.meta_info_data
-            #position.meta_info_data = meta
-            #position.save()
-            #messages.success(request, _("Voucher already created."))
-
-            #url = reverse(
-            #  'presale:event.redeem',
-            #  kwargs={
-            #    'organizer': event.organizer.slug,
-            #    'event': event.slug })
-            ##url+= '?' + urlencode({ 'voucher': voucher.code })
-            #return redirect( url )
-
-        #return redirect(
-        #    eventreverse(
-        #        self.request.event,
-        #        "presale:event.order",
-        #        kwargs={"order": self.order.code, "secret": self.order.secret} ))
-
