@@ -3,7 +3,8 @@ from pretix.multidomain import event_url
 
 from .views import (
     TicketTransferSettingsView,
-    TicketTransfer
+    TicketTransfer,
+    TicketTransferAccept
 )
 
 event_patterns = [
@@ -11,6 +12,11 @@ event_patterns = [
         r"^order/(?P<order>[^/]+)/(?P<secret>[A-Za-z0-9]+)/ticket_transfer$",
         TicketTransfer.as_view(),
         name="generate",
+    ),
+    event_url(
+        r"^order/(?P<order>[^/]+)/(?P<secret>[A-Za-z0-9]+)/ticket_transfer_accept$",
+        TicketTransferAccept.as_view(),
+        name="accept",
     ),
 ]
 

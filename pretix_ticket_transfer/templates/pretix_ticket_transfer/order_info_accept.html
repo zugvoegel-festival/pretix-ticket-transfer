@@ -1,0 +1,32 @@
+{% load i18n %}
+{% load eventurl %}
+{% load static %}
+
+{% if confirm %}
+<div class="panel panel-success">
+   <div class="panel-heading">
+       <h3 class="panel-title">{{ title }}</h3>
+   </div>
+   <div class="panel-body">
+       <p>
+         {{message}}
+       </p>
+
+        <form action="{% eventurl event "plugins:pretix_ticket_transfer:accept" secret=order.secret order=order.code %}" method="post">
+          {% csrf_token %}
+
+          <div class="checkbox">
+              <label for="input_confirm_pages">
+                  <input type="checkbox" class="checkbox" value="yes" name="confirm_pages" id="input_confirm_pages" required>
+                  {{confirm|safe}}
+              </label>
+          </div>
+
+          <p class="text-right">
+            <button type="submit" class="btn btn-default">{% trans "accept AGB" %}</button>
+          </p>
+        </form>
+    </div>
+</div>
+{% endif %}
+

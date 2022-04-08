@@ -11,6 +11,21 @@
   {% endblocktrans %}
 </h2>
 
+<details class="panel panel-default details-open" open>
+   <summary class="panel-heading">
+       <h3 class="panel-title">{{ title }}</h3>
+   </summary>
+   <div class="panel-collapse">
+    <div class="panel-body">
+       <p>
+         {{message}}
+       </p>
+
+      </div>
+    </div>
+</details>
+
+
 <form class="form-horizontal" action="{% eventurl event "plugins:pretix_ticket_transfer:generate" secret=order.secret order=order.code %}" method="post">
 {% csrf_token %}
 

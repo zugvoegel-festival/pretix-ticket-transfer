@@ -12,6 +12,12 @@ from pretix.base.i18n import language
 from pretix.base.email import get_email_context
 from django.utils.translation import gettext as _
 
+from i18nfield.strings import LazyI18nString
+from pretix.base.services.mail import SendMailException
+
+TICKET_TRANSFER_START = 1
+TICKET_TRANSFER_DONE = 2
+
 class TicketTransferChangeManager(OrderChangeManager):
     """
     dont complete_cancel check
@@ -72,7 +78,6 @@ class TicketTransferChangeManager(OrderChangeManager):
         })
 
         for op in split_positions:
-            op.attendee_name_parts = {}
             self.order.log_action('pretix.event.order.changed.split', user=self.user, auth=self.auth, data={
                 'position': op.pk,
                 'positionid': op.positionid,
@@ -143,30 +148,27 @@ class TicketTransferChangeManager(OrderChangeManager):
 
 def notify_user_split_order_source(order, user=None, auth=None, invoices=[]):
     with language(order.locale, order.event.settings.region):
-        email_template = order.event.settings.mail_text_order_changed
+        email_template = order.event.settings.get('pretix_ticket_transfer_sender_mailtext', as_type=LazyI18nString)
+        email_subject = str(order.event.settings.get('pretix_ticket_transfer_sender_subject', as_type=LazyI18nString)).format(code=order.code)
         email_context = get_email_context(event=order.event, order=order)
-        email_subject = _('Your order has been changed: %(code)s') % {'code': order.code}
         try:
-            order.send_mail(
-                email_subject, email_template, email_context,
-                'pretix.event.order.email.order_changed', user, auth=auth, invoices=invoices, attach_tickets=True,
-            )
+          order.send_mail(
+            email_subject, email_template, email_context,
+            'pretix.event.order.email.ticket_transfer_sender', user, auth=auth, invoices=invoices, attach_tickets=True)
         except SendMailException:
-            logger.exception('Order changed email could not be sent')
+          logger.exception('Tickettransfer sender email could not be sent')
 
 def notify_user_split_order_target(order, user=None, auth=None, invoices=[]):
     with language(order.locale, order.event.settings.region):
-        email_template = order.event.settings.mail_text_order_changed
+        email_template = order.event.settings.get('pretix_ticket_transfer_recipient_mailtext', as_type=LazyI18nString)
+        email_subject = str(order.event.settings.get('pretix_ticket_transfer_recipient_subject', as_type=LazyI18nString)).format(code=order.code)
         email_context = get_email_context(event=order.event, order=order)
-        email_subject = _('Your order has been changed: %(code)s') % {'code': order.code}
         try:
-            order.send_mail(
-                email_subject, email_template, email_context,
-                'pretix.event.order.email.order_changed', user, auth=auth, invoices=invoices, attach_tickets=True,
-            )
+          order.send_mail(
+            email_subject, email_template, email_context,
+            'pretix.event.order.email.ticket_transfer_recipient', user, auth=auth, invoices=invoices, attach_tickets=True)
         except SendMailException:
-            logger.exception('Order changed email could not be sent')
-
+            logger.exception('Tickettransfer recipient email could not be sent')
 
 def user_split( order, pids, data ):
   with transaction.atomic():
@@ -186,6 +188,13 @@ def user_split( order, pids, data ):
       elif event.settings.get( 'pretix_ticket_transfer_items_all' ) == False:
         if p.item.id not in json.loads( event.settings.get( 'pretix_ticket_transfer_items' )):
           continue
+
+      p.attendee_name_parts = {}
+
+      meta = p.meta_info_data
+      meta['ticket_transfer'] = TICKET_TRANSFER_START
+      p.meta_info_data = meta
+
       ocm.split(p)
       pos.append( p )
 
