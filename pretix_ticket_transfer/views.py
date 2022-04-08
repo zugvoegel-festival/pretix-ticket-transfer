@@ -45,32 +45,32 @@ class TicketTransferSettingsForm(SettingsForm):
         label=_("Sender - orderinfo message"),
         required=False,
         widget=I18nTextarea,
-        help_text=_(""),
+        help_text=_("Orderinfo for the Sender"),
         widget_kwargs={'attrs': { 'rows': '8' }} )
     pretix_ticket_transfer_step2_message = I18nFormField(
         label=_("Sender - step2 message"),
         required=False,
         widget=I18nTextarea,
-        help_text=_(""),
+        help_text=_("Orderinfo for the Sender Second Step"),
         widget_kwargs={'attrs': { 'rows': '8' }} )
     pretix_ticket_transfer_done_message = I18nFormField(
         label=_("Sender - done message"),
         required=False,
         widget=I18nTextarea,
-        help_text=_(""),
+        help_text=_("Orderinfo for the Sender after all tickets are sold"),
         widget_kwargs={'attrs': { 'rows': '8' }} )
 
     pretix_ticket_transfer_recipient_message = I18nFormField(
         label=_("Recipient - orderinfo message"),
         required=False,
         widget=I18nTextarea,
-        help_text=_(""),
+        help_text=_("Orderinfo for the recipient"),
         widget_kwargs={'attrs': { 'rows': '8' }} )
     pretix_ticket_transfer_recipient_done_message = I18nFormField(
         label=_("Recipient - done message"),
         required=False,
         widget=I18nTextarea,
-        help_text=_(""),
+        help_text=_("Orderinfo for the recipient after accepting"),
         widget_kwargs={'attrs': { 'rows': '8' }} )
 
 
@@ -78,7 +78,7 @@ class TicketTransferSettingsForm(SettingsForm):
         label=_("Sender - email subject"),
         required=False,
         widget=I18nTextarea,
-        help_text=_(""),
+        help_text=_("Subject for the Sender email"),
         widget_kwargs={'attrs': { 'rows': '1' }} )
     pretix_ticket_transfer_sender_mailtext = I18nFormField(
         label=_("Sender - email text"),
@@ -91,7 +91,7 @@ class TicketTransferSettingsForm(SettingsForm):
         label=_("Recipient - email subject"),
         required=False,
         widget=I18nTextarea,
-        help_text=_(""),
+        help_text=_("Subject for the recipient email"),
         widget_kwargs={'attrs': { 'rows': '1' }} )
     pretix_ticket_transfer_recipient_mailtext = I18nFormField(
         label=_("Recipient - email text"),
