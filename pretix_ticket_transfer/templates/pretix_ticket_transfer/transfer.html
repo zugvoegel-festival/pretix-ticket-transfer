@@ -3,137 +3,185 @@
 {% load eventurl %}
 {% load static %}
 
-{% block title %}{% trans "Modify order" %}{% endblock %}
+{% block title %}{% trans "Ticket transfer" %}{% endblock %}
 {% block content %}
+
 <h2>
   {% blocktrans trimmed with code=order.code %}
-      Ticket Transfer for order: {{ code }}
+    Ticket transfer for order: {{ code }}
   {% endblocktrans %}
 </h2>
 
-<details class="panel panel-default details-open" open>
-   <summary class="panel-heading">
-       <h3 class="panel-title">{{ title }}</h3>
-   </summary>
-   <div class="panel-collapse">
-    <div class="panel-body">
-       <p>
-         {{message}}
-       </p>
-
-      </div>
-    </div>
-</details>
-
-
 <form class="form-horizontal" action="{% eventurl event "plugins:pretix_ticket_transfer:generate" secret=order.secret order=order.code %}" method="post">
+
 {% csrf_token %}
 
-<details class="panel panel-default details-open cart" open>
-  <summary class="panel-heading">
-      <h3 class="panel-title">{% trans "Selected Tickets" %}</h3>
-  </summary>
-  <div class="panel-collapse">
-    <div class="panel-body">
+{% if confirm %}
+  <details class="panel panel-default details-open" open>
+     <summary class="panel-heading">
+         <h3 class="panel-title">{% trans "Confirm ticket transfer" %}</h3>
+     </summary>
+     <div class="panel-collapse">
+      <div class="panel-body">
 
-    {% if not pos %}
-      <h4>{% trans "Select Tickets to Transfer" %}</h4>
-      <form action="{% eventurl event "plugins:pretix_ticket_transfer:generate" secret=order.secret order=order.code %}" method="post">
-        {% csrf_token %}
-        <ul>
-          {% for i in orderpositions %}
-          <li>
-            <label>
-              <input type="checkbox" name="pos[]" value="{{i.id}}" />
-              {{i.name}} {{i.variation}}
-              {% if i.attendee_name_cached %} - {{i.attendee_name_cached}}{% endif %}
-            </label><br />
+        {{message}}
+
+        <input type="hidden" name="email" value="{{ email }}" />
+        <input type="hidden" name="email_repeat" value="{{ email }}" />
+
+        <h4>{% trans "Recipient" %}:</h4>
+        <section>
+          <p>{{ email }}</p>
+        </section>
+
+        <h4>{% trans "Tickets" %}:</h4>
+        <div role="table" class="cart ttcart" aria-label="Selected tickets">
+          {% for i in pos %}
+            <input type="hidden" name="pos[]" value="{{i.id}}" />
+            <div role="rowgroup">
+              <div role="row" class="row cart-row">
+                <div role="cell" class="product">{{i.name}} {{i.variation}}{% if i.attendee_name_cached %} - {{i.attendee_name_cached}}{% endif %}</div>
+                <div role="cell" class="totalprice price">{{i.price}}</div>
+              </div>
+            </div>
           {% endfor %}
-          </li>
-        <ul>
-
-        <p class="text-right">
-          <button type="submit" class="btn btn-default">{% trans "Select recipient" %}</button>
-        </p>
-      </form>
-    {% else %}
-
-      <div role="table" aria-label="Selected Tickets">
-        {% for i in pos %}
-          <input type="hidden" name="pos[]" value="{{i.id}}" />
           <div role="rowgroup">
-            <div role="row" class="row cart-row">
-              <div role="cell" class="product">{{i.name}} {{i.variation}}{% if i.attendee_name_cached %} - {{i.attendee_name_cached}}{% endif %}</div>
-              <div role="cell" class="count"></div>
-              <div role="cell" class="totalprice price">{{i.price}}</div>
+            <div role="row" class="row cart-row total">
+              <div role="cell" class="product">{% trans "Total worth of Ticket transfer" %}</div>
+              <div role="cell" class="totalprice price">{{totalprice}}</div>
             </div>
           </div>
-        {% endfor %}
+        </div>
 
-        <div role="rowgroup">
-          <div role="row" class="row cart-row total">
-            <div role="cell" class="product">Total worth of ticket transfer</div>
-            <div role="cell" class="count"></div>
-            <div role="cell" class="totalprice price">{{totalprice}}</div>
+        <div class="row checkout-button-row">
+          <div class="col-md-4">
+            <button name="step2" value="1" type="submit" class="btn btn-block btn-primary">{% trans "Go back" %}</button>
+          </div>
+          <div class="col-md-4 col-md-offset-4">
+            <button name="confirm" value="1" type="submit" class="btn btn-block btn-primary">{% trans "Confirm ticket transfer" %}</button>
           </div>
         </div>
-      </div>
 
-    {% endif %}
-    </div>
-  </div>
-</details>
-
-<details class="panel panel-default details-open" open>
-   <summary class="panel-heading">
-       <h3 class="panel-title">{% trans "Choose recipient" %}</h3>
-   </summary>
-   <div class="panel-collapse">
-     <div class="panel-body">
-
-       <div class="form-group required">
-        <label class="col-md-3 control-label" for="tt-email-0">
-          <i class="sr-only label-required">, required</i>
-          E-mail
-        </label>
-        <div class="col-md-9">
-          <input id="tt-email-0" class="form-control" type="email" name="email" autocomplete="section-contact email" placeholder="E-mail" 
-            title="Please enter the email that should recieve the Tickets" required 
-            aria-describedby="help-for-tt-email-0" />
-          <p class="help-block" id="help-for-tt-email-0">
-            Please enter the email that should recieve the Tickets
-          </p>
-        </div>
-       </div>
-
-       <div class="form-group required">
-        <label class="col-md-3 control-label" for="tt-email-1">
-          <i class="sr-only label-required">, required</i>
-          E-mail (repeated)
-        </label>
-        <div class="col-md-9">
-          <input id="tt-email-0" class="form-control" type="email" name="email_repeat" autocomplete="section-contact email" placeholder="E-mail" 
-            title="Please enter the same email address again to make sure you typed it correctly." required 
-            aria-describedby="help-for-tt-email-1" />
-          <p class="help-block" id="help-for-tt-email-1">
-            Please enter the same email address again to make sure you typed it correctly.
-          </p>
-        </div>
-       </div>
-
-
-    <div class="row checkout-button-row">
-      <div class="col-md-4">
-        <a class="btn btn-block btn-primary" href="{% eventurl event "presale:event.order" secret=order.secret order=order.code %}">
-          <i class="fa fa-close" aria-hidden="true"></i> {% trans "cancel" %}</a>
-      </div>
-      <div class="col-md-4 col-md-offset-4">
-        <button type="submit" class="btn btn-block btn-primary">{% trans "Transfer Tickets" %}</button>
       </div>
     </div>
-  </div>
-</details>
+  </details>
 
+{% else %}
+
+  <details class="panel panel-default details-open" open>
+     <summary class="panel-heading">
+       <h3 class="panel-title">{{ title }}</h3>
+     </summary>
+     <div class="panel-collapse">
+       <div class="panel-body">
+         <p>{{message}}</p>
+       </div>
+     </div>
+  </details>
+
+  <details class="panel panel-default details-open" open>
+    <summary class="panel-heading">
+      {% if not pos %}
+        <h3 class="panel-title">{% trans "Select tickets" %}</h3>
+      {% else %}
+        <h3 class="panel-title">{% trans "Selected tickets" %}</h3>
+      {% endif %}
+    </summary>
+    <div class="panel-collapse">
+      <div class="panel-body">
+
+        {% if not pos %}
+          <h4>{% trans "Select tickets to transfer" %}</h4>
+            {% csrf_token %}
+            <ul>
+              {% for i in orderpositions %}
+              <li>
+                <label>
+                  <input type="checkbox" name="pos[]" value="{{i.id}}" />
+                  {{i.name}} {{i.variation}}
+                  {% if i.attendee_name_cached %} - {{i.attendee_name_cached}}{% endif %}
+                </label>
+              {% endfor %}
+              </li>
+            <ul>
+
+        {% else %}
+          <div role="table" class="cart ttcart" aria-label="Selected tickets">
+            {% for i in pos %}
+              <input type="hidden" name="pos[]" value="{{i.id}}" />
+              <div role="rowgroup">
+                <div role="row" class="row cart-row">
+                  <div role="cell" class="product">{{i.name}} {{i.variation}}{% if i.attendee_name_cached %} - {{i.attendee_name_cached}}{% endif %}</div>
+                  <div role="cell" class="totalprice price">{{i.price}}</div>
+                </div>
+              </div>
+            {% endfor %}
+            <div role="rowgroup">
+              <div role="row" class="row cart-row total">
+                <div role="cell" class="product">{% trans "Total worth of Ticket transfer" %}</div>
+                <div role="cell" class="totalprice price">{{totalprice}}</div>
+              </div>
+            </div>
+          </div>
+        {% endif %}
+
+      </div>
+    </div>
+  </details>
+
+  <details class="panel panel-default details-open" open>
+     <summary class="panel-heading">
+         <h3 class="panel-title">{% trans "Choose recipient" %}</h3>
+     </summary>
+     <div class="panel-collapse">
+       <div class="panel-body">
+
+         <div class="form-group required">
+          <label class="col-md-3 control-label" for="tt-email-0">
+            <i class="sr-only label-required">, {% trans "required" %}</i>
+            {% trans "Email" %}
+          </label>
+          <div class="col-md-9">
+            <input id="tt-email-0" class="form-control" type="email" name="email" value="{{email}}"
+              autocomplete="section-contact email" placeholder="E-mail"
+              title="{% trans "Please enter the email of the person who should recieve the tickets" %}" required
+              aria-describedby="help-for-tt-email-0" />
+            <p class="help-block" id="help-for-tt-email-0">
+            {% trans "Please enter the email of the person who should recieve the tickets" %}
+            </p>
+          </div>
+         </div>
+
+         <div class="form-group required">
+          <label class="col-md-3 control-label" for="tt-email-1">
+            <i class="sr-only label-required">, {% trans "required" %}</i>
+            {% trans "Email (repeated)" %}
+          </label>
+          <div class="col-md-9">
+            <input id="tt-email-0" class="form-control" type="email" name="email_repeat" value="{{email}}"
+              autocomplete="section-contact email" placeholder="E-mail"
+              title="{% trans "Please enter the same email address again to make sure you typed it correctly." %}" required 
+              aria-describedby="help-for-tt-email-1" />
+            <p class="help-block" id="help-for-tt-email-1">
+              {% trans "Please enter the same email address again to make sure you typed it correctly." %}
+            </p>
+          </div>
+         </div>
+
+
+      <div class="row checkout-button-row">
+        <div class="col-md-4">
+          <a class="btn btn-block btn-primary" href="{% eventurl event "presale:event.order" secret=order.secret order=order.code %}">
+            <i class="fa fa-close" aria-hidden="true"></i> {% trans "Cancel" %}</a>
+        </div>
+        <div class="col-md-4 col-md-offset-4">
+          <button type="submit" class="btn btn-block btn-primary">{% trans "Transfer tickets" %}</button>
+        </div>
+      </div>
+    </div>
+  </details>
+
+{% endif %}
 </form>
 {% endblock %}
 

@@ -10,12 +10,12 @@ __version__ = "0.0.21"
 
 class PluginApp(PluginConfig):
     name = "pretix_ticket_transfer"
-    verbose_name = "Ticket Transfer"
+    verbose_name = "Ticket transfer"
 
     class PretixPluginMeta:
-        name = gettext_lazy("Ticket Transfer")
+        name = gettext_lazy("Ticket transfer")
         author = "alice"
-        description = gettext_lazy("Allow to transfert ticket to new account")
+        description = gettext_lazy("Allow ticket transfer to a new order")
         visible = True
         version = __version__
         category = "FEATURE"

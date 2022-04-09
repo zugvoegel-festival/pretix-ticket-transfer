@@ -1,12 +1,12 @@
 {% extends "pretixcontrol/event/settings_base.html" %}
 {% load i18n %}
 {% load bootstrap3 %}
-{% block title %} {% trans "TicketTransfer Settings" %} {% endblock %}
+{% block title %} {% trans "Ticket transfer Settings" %} {% endblock %}
 {% block inside %}
     <form action="" method="post" class="form-horizontal">
         {% csrf_token %}
         <fieldset>
-            <legend>{% trans "TicketTransfer Settings" %}</legend>
+            <legend>{% trans "Ticket transfer Settings" %}</legend>
             {% bootstrap_form form layout="horizontal" %}
         </fieldset>
         <div class="form-group submit-group">

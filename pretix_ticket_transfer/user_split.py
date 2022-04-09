@@ -191,10 +191,6 @@ def user_split( order, pids, data ):
 
       p.attendee_name_parts = {}
 
-      meta = p.meta_info_data
-      meta['ticket_transfer'] = TICKET_TRANSFER_START
-      p.meta_info_data = meta
-
       ocm.split(p)
       pos.append( p )
 
@@ -202,15 +198,26 @@ def user_split( order, pids, data ):
 
       ocm.commit(check_quotas=False)
 
+      split_order = ocm.split_order
+      split_order.email_known_to_work = False
+
       if data.get('email'):
-        ocm.split_order.email = data.get('email')
-        ocm.split_order.save()
+        split_order.email = data.get('email')
+
+      meta = split_order.meta_info_data
+      meta['doistep'] = {}
+      meta['contact_form_data'] = {}
+      meta['confirm_messages'] = []
+      meta['ticket_transfer'] = TICKET_TRANSFER_START
+      split_order.meta_info = json.dumps(meta)
+
+      split_order.save()
 
       notify_user_split_order_source(
-          ocm.order, ocm.user, ocm.auth,
+          order, ocm.user, ocm.auth,
           ocm._invoices if ocm.event.settings.invoice_email_attachment else [] )
       notify_user_split_order_target(
-          ocm.split_order, ocm.user, ocm.auth,
-          list(ocm.split_order.invoices.all()) if ocm.event.settings.invoice_email_attachment else [] )
+          split_order, ocm.user, ocm.auth,
+          list(split_order.invoices.all()) if ocm.event.settings.invoice_email_attachment else [] )
 
 
