@@ -98,7 +98,7 @@
               <li>
                 <label>
                   <input type="checkbox" name="pos[]" value="{{i.id}}" />
-                  {{i.name}} {{i.variation}}
+                  #{{i.positionid}} {{i.name}} {{i.variation}}
                   {% if i.attendee_name_cached %} - {{i.attendee_name_cached}}{% endif %}
                 </label>
               {% endfor %}
