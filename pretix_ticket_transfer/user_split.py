@@ -194,6 +194,15 @@ def user_split( order, pids, data ):
       ocm.split(p)
       pos.append( p )
 
+      if p.meta_info_data and p.meta_info_data.get('vouchergen_voucher_code'):
+        from pretix_vouchergen.utils import cancel_voucher
+        cancel_voucher( p.meta_info_data.get('vouchergen_voucher_code'))
+
+        meta = p.meta_info_data
+        del meta['vouchergen_voucher_code']
+        p.meta_info_data = meta
+        p.save()
+
     if len(pos) == len(positions):
 
       ocm.commit(check_quotas=False)
