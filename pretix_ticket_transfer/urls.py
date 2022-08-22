@@ -4,7 +4,8 @@ from pretix.multidomain import event_url
 from .views import (
     TicketTransferSettingsView,
     TicketTransfer,
-    TicketTransferAccept
+    TicketTransferAccept,
+    TicketTransferStats
 )
 
 event_patterns = [
@@ -23,4 +24,6 @@ event_patterns = [
 urlpatterns = [
     url(r'^control/event/(?P<organizer>[^/]+)/(?P<event>[^/]+)/ticket_transfer/settings$',
         TicketTransferSettingsView.as_view(), name='settings'),
+    url(r'^control/event/(?P<organizer>[^/]+)/(?P<event>[^/]+)/ticket_transfer/stats$',
+        TicketTransferStats.as_view(), name='stats'),
 ]

@@ -4,6 +4,8 @@ from django.dispatch import receiver
 from django.template.loader import get_template
 from django.middleware import csrf
 from django.urls import resolve, reverse
+from django.db.models import Exists
+from django import forms
 from django.shortcuts import redirect
 from django.utils.http import urlencode
 from django.utils.html import escape
@@ -21,7 +23,7 @@ from pretix.presale.signals import (
     order_info,
     sass_postamble,
     checkout_confirm_messages )
-from pretix.control.signals import nav_event_settings
+from pretix.control.signals import nav_event, nav_event_settings, order_search_forms
 
 from .user_split import TICKET_TRANSFER_START, TICKET_TRANSFER_DONE
 
@@ -127,4 +129,71 @@ def navbar_settings(sender, request, **kwargs):
       'event': request.event.slug,
       'organizer': request.organizer.slug }),
     'active': url.namespace == 'plugins:pretix_ticket_transfer' and url.url_name == 'settings' }]
+
+
+@receiver(nav_event, dispatch_uid="ticket_transfer_nav_info")
+def navbar_info(sender, request, **kwargs):
+    url = resolve(request.path_info)
+    if not request.user.has_event_permission(
+        request.organizer, request.event, "can_change_event_settings"
+    ):
+        return []
+    return [
+        {
+            "label": _("Ticket Transfer"),
+            "icon": "random",
+            "url": reverse(
+                "plugins:pretix_ticket_transfer:stats",
+                kwargs={
+                    "event": request.event.slug,
+                    "organizer": request.organizer.slug,
+                },
+            ),
+            "active": url.namespace == "plugins:pretix_ticket_transfer"
+            and url.url_name == "stats",
+        }
+    ]
+
+class TransferSearchForm(forms.Form):
+    ticket_transfer = forms.ChoiceField(
+        required=False,
+        label=_("Ticket Transfers"),
+        choices=(
+            ("", "--------"),
+            ("0", _("no transfer")),
+            ("1", _("open transfer")),
+            ("2", _("finalized transfer")),
+        ),
+    )
+
+    def __init__(self, *args, event=None, **kwargs):
+        self.event = event
+        super().__init__(*args, **kwargs)
+
+    def filter_qs(self, queryset):
+        status = self.cleaned_data.get("ticket_transfer")
+        if status:
+            if status == "1":
+                queryset = queryset.filter(
+                  meta_info__contains='"ticket_transfer": 1',
+                )
+        return queryset
+
+    def filter_to_strings(self):
+        status = self.cleaned_data.get("ticket_transfer")
+        ticket_transfer_string = {
+            "": "",
+            "0": _("no Ticket Transfer"),
+            "1": _("open Ticket Transfer"),
+            "2": _("finalized Ticket Transfer"),
+        }[status]
+
+        result = []
+        if ticket_transfer_string:
+            result.append(ticket_transfer_string)
+        return result
+
+@receiver(order_search_forms)
+def ticket_transfer_search_forms(request, sender, **kwargs):
+    return TransferSearchForm(request.GET, event=sender, prefix="swap")
 

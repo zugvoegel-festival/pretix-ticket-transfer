@@ -14,6 +14,7 @@ from django.utils.translation import gettext_lazy as _
 from i18nfield.strings import LazyI18nString
 from pretix.base.models import Event, Order, Item, OrderPosition
 from pretix.base.forms import SettingsForm
+from pretix.control.permissions import EventPermissionRequiredMixin
 from pretix.control.views.event import EventSettingsFormView, EventSettingsViewMixin
 from pretix.presale.views import EventViewMixin
 from pretix.presale.views.order import OrderDetailMixin
@@ -242,3 +243,28 @@ class TicketTransferAccept(EventViewMixin, OrderDetailMixin, TemplateView):
                 self.request.event,
                 "presale:event.order",
                 kwargs={"order": self.order.code, "secret": self.order.secret} ))
+
+class TicketTransferStats(EventPermissionRequiredMixin, TemplateView):
+    permission = "can_change_event_settings"
+    template_name = "pretix_ticket_transfer/control/stats.html"
+
+    def get_context_data(self, *args, **kwargs):
+        ctx = super().get_context_data(*args, **kwargs)
+        ctx['rows'] = []
+
+        from django.db import connection
+
+        with connection.cursor() as cursor:
+          cursor.execute( "select * from pretixbase_order" )
+          #cursor.execute( "select *, meta_info::json->'ticket_transfer' from pretixbase_order where meta_info::json->>'ticket_transfer'='1'" )
+          #cursor.execute( "select meta_info::json->>'ticket_transfer' as ticket_transfer, count( * ) as count from pretixbase_order where meta_info like '%ticket_transfer%' group by meta_info::json->>'ticket_transfer'" )
+          #cursor.execute( "select meta_info::json->'ticket_transfer' as ticket_transfer from pretixbase_order where meta_info like '%ticket_transfer%'" )
+          #cursor.execute( "select meta_info::json #>> '{ticket_transfer}' as ticket_transfer from pretixbase_order where meta_info like '%ticket_transfer%'" )
+          for row in cursor.fetchall():
+            ctx['rows'].append( row )
+            print( 'row', row )
+
+        #ctx['ordercount'] = len( Order.objects.raw( "select *, meta_info::json->>'ticket_transfer' from pretixbase_order where meta_info::json->>'ticket_transfer'='1'" ))
+
+        return ctx
+
