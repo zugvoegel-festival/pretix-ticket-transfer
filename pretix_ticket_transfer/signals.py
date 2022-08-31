@@ -14,7 +14,7 @@ from django.utils.safestring import mark_safe
 from i18nfield.strings import LazyI18nString
 from django.contrib.staticfiles import finders
 from pretix.base.models import Order, ItemVariation
-from pretix.base.signals import logentry_display
+from pretix.base.signals import logentry_display, allow_ticket_download
 from pretix.base.templatetags.rich_text import rich_text
 from pretix.base.templatetags.money import money_filter
 from pretix.multidomain.urlreverse import eventreverse
@@ -58,8 +58,9 @@ def orderinfo_target(sender, order, request, **kwargs):
       for receiver, response in checkout_confirm_messages.send(request.event):
         if 'pages' in response:
           ctx['confirm'] = response['pages']
-      template = get_template( 'pretix_ticket_transfer/order_info_accept.html' )
-      return template.render( ctx )
+          template = get_template( 'pretix_ticket_transfer/order_info_accept.html' )
+          return template.render( ctx )
+        #TODO: default
 
     elif order.meta_info_data.get('ticket_transfer') == TICKET_TRANSFER_DONE:
       ctx['message'] = str(rich_text( sender.settings.get('pretix_ticket_transfer_recipient_done_message', as_type=LazyI18nString )))
@@ -119,6 +120,13 @@ def orderinfo_source(sender, order, request, **kwargs):
 
   template = get_template( 'pretix_ticket_transfer/order_info.html' )
   return template.render( ctx )
+
+@receiver(allow_ticket_download, dispatch_uid="ticket_transfer_allow_ticket_download")
+def ticket_transfer_allow_ticket(sender, **kwargs):
+    order = kwargs.get('order')
+    if order.meta_info_data.get('ticket_transfer') == TICKET_TRANSFER_START:
+      return False
+    return True
 
 @receiver(nav_event_settings, dispatch_uid='ticket_transfer_nav_settings')
 def navbar_settings(sender, request, **kwargs):

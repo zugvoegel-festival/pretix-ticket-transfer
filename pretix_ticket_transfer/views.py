@@ -201,13 +201,6 @@ class TicketTransfer(EventViewMixin, OrderDetailMixin, TemplateView):
           pos.append( position )
           totalprice+= position.price
 
-        #if len(pos) < 1:
-        #  return redirect(
-        #      eventreverse(
-        #          self.request.event,
-        #          "presale:event.order",
-        #          kwargs={"order": self.order.code, "secret": self.order.secret} ))
-
         ctx['pos'] = pos
         ctx['totalprice'] = totalprice
         ctx['email'] = email or ""
@@ -262,7 +255,6 @@ class TicketTransferStats(EventPermissionRequiredMixin, TemplateView):
           #cursor.execute( "select meta_info::json #>> '{ticket_transfer}' as ticket_transfer from pretixbase_order where meta_info like '%ticket_transfer%'" )
           for row in cursor.fetchall():
             ctx['rows'].append( row )
-            print( 'row', row )
 
         #ctx['ordercount'] = len( Order.objects.raw( "select *, meta_info::json->>'ticket_transfer' from pretixbase_order where meta_info::json->>'ticket_transfer'='1'" ))
 
