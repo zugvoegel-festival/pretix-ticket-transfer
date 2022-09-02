@@ -25,7 +25,7 @@ from pretix.presale.signals import (
     checkout_confirm_messages )
 from pretix.control.signals import nav_event, nav_event_settings, order_search_forms
 
-from .user_split import TICKET_TRANSFER_START, TICKET_TRANSFER_DONE
+from .user_split import user_split_positions, TICKET_TRANSFER_START, TICKET_TRANSFER_DONE
 
 @receiver(sass_postamble, dispatch_uid="ticket_transfer_sass_postamble")
 def r_sass_postamble(sender, filename, **kwargs):
@@ -82,17 +82,7 @@ def orderinfo_source(sender, order, request, **kwargs):
   pos = []
   log = []
 
-  positions = order.positions.select_related('item')
-  for p in positions:
-    if not p.item.admission:
-      continue
-    if event.settings.get( 'pretix_ticket_transfer_items_all' ) == None:
-      continue   # default to false
-    elif event.settings.get( 'pretix_ticket_transfer_items_all' ) == True:
-      pos.append( p )
-    elif event.settings.get( 'pretix_ticket_transfer_items_all' ) == False:
-      if p.item.id in json.loads( event.settings.get( 'pretix_ticket_transfer_items' )):
-        pos.append( p )
+  pos = user_split_positions( order )
 
   logentries = order.all_logentries( )
   for l in logentries:

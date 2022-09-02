@@ -170,6 +170,26 @@ def notify_user_split_order_target(order, user=None, auth=None, invoices=[]):
         except SendMailException:
             logger.exception('Tickettransfer recipient email could not be sent')
 
+def user_split_positions( order, pids=None ):
+
+  pos = []
+  positions = order.positions.select_related('item')
+  if pids:
+    positions = positions.filter(pk__in=pids)
+  for p in positions:
+    if not p.item.admission:
+      continue
+    if p.all_checkins.exists():
+      continue
+    if order.event.settings.get( 'pretix_ticket_transfer_items_all' ) == None:
+      continue   # default to false
+    elif order.event.settings.get( 'pretix_ticket_transfer_items_all' ) == True:
+      pos.append( p )
+    elif order.event.settings.get( 'pretix_ticket_transfer_items_all' ) == False:
+      if p.item.id in json.loads( order.event.settings.get( 'pretix_ticket_transfer_items' )):
+        pos.append( p )
+  return pos
+
 def user_split( order, pids, data ):
   with transaction.atomic():
     event = order.event
@@ -179,20 +199,12 @@ def user_split( order, pids, data ):
         notify=False,
         reissue_invoice=False )
 
-    pos = []
-    for p in positions:
-      if not p.item.admission:
-        continue
-      if event.settings.get( 'pretix_ticket_transfer_items_all' ) == None:
-        continue   # default to false
-      elif event.settings.get( 'pretix_ticket_transfer_items_all' ) == False:
-        if p.item.id not in json.loads( event.settings.get( 'pretix_ticket_transfer_items' )):
-          continue
-
+    pos = user_split_positions( order, pids )
+    success = 0
+    for p in pos:
       p.attendee_name_parts = {}
-
       ocm.split(p)
-      pos.append( p )
+      success+= 1
 
       if p.meta_info_data and p.meta_info_data.get('vouchergen_voucher_code'):
         from pretix_vouchergen.utils import cancel_voucher
@@ -203,7 +215,7 @@ def user_split( order, pids, data ):
         p.meta_info_data = meta
         p.save()
 
-    if len(pos) == len(positions):
+    if success == len(pos):
 
       ocm.commit(check_quotas=False)
 
@@ -228,5 +240,8 @@ def user_split( order, pids, data ):
       notify_user_split_order_target(
           split_order, ocm.user, ocm.auth,
           list(split_order.invoices.all()) if ocm.event.settings.invoice_email_attachment else [] )
+
+      return True
+    return False
 
 

@@ -22,7 +22,7 @@ from pretix.multidomain.urlreverse import eventreverse
 from pretix.base.templatetags.rich_text import rich_text
 from i18nfield.forms import I18nFormField, I18nTextarea
 
-from .user_split import user_split, TICKET_TRANSFER_START, TICKET_TRANSFER_DONE
+from .user_split import user_split, user_split_positions, TICKET_TRANSFER_START, TICKET_TRANSFER_DONE
 
 class TicketTransferSettingsForm(SettingsForm):
     pretix_ticket_transfer_title = I18nFormField(
@@ -151,7 +151,8 @@ class TicketTransfer(EventViewMixin, OrderDetailMixin, TemplateView):
     def get_context_data(self, *args, **kwargs):
         ctx = super().get_context_data(*args, **kwargs)
         ctx['order'] = self.order
-        ctx['orderpositions'] = self.order.positions.select_related('item')
+        ctx['orderpositions'] = user_split_positions( self.order )
+
         ctx['title'] = self.order.event.settings.get('pretix_ticket_transfer_title', as_type=LazyI18nString )
         ctx['message'] = str(rich_text( self.order.event.settings.get('pretix_ticket_transfer_step2_message', as_type=LazyI18nString )))
         return ctx
@@ -161,6 +162,7 @@ class TicketTransfer(EventViewMixin, OrderDetailMixin, TemplateView):
           raise Http404()
 
         error = False
+        pos = []
         pids = request.POST.getlist('pos[]')
         email = request.POST.get('email')
         email_repeat = request.POST.get('email_repeat')
@@ -169,6 +171,11 @@ class TicketTransfer(EventViewMixin, OrderDetailMixin, TemplateView):
 
         ctx = self.get_context_data(*args, **kwargs)
         ctx['csrf_token'] = csrf.get_token(request)
+
+        if pids:
+          pos = user_split_positions( self.order, pids )
+          if not len( pids ) == len( pos ):
+            error = _("Ticketselection")
 
         if not step2 and email:
           try:
@@ -194,11 +201,8 @@ class TicketTransfer(EventViewMixin, OrderDetailMixin, TemplateView):
                     "presale:event.order",
                     kwargs={"order": self.order.code, "secret": self.order.secret} ))
 
-        pos = []
         totalprice = 0
-        for id in pids:
-          position = OrderPosition.objects.get(pk=id)
-          pos.append( position )
+        for position in pos:
           totalprice+= position.price
 
         ctx['pos'] = pos
