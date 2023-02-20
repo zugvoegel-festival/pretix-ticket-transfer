@@ -203,7 +203,7 @@ class TicketTransfer(EventViewMixin, OrderDetailMixin, TemplateView):
 
         totalprice = 0
         for position in pos:
-          totalprice+= position.price
+          totalprice+= position.price_with_addons
 
         ctx['pos'] = pos
         ctx['totalprice'] = totalprice

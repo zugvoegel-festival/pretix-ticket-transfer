@@ -177,7 +177,7 @@ def user_split_positions( order, pids=None ):
   if pids:
     positions = positions.filter(pk__in=pids)
   for p in positions:
-    if not p.item.admission:
+    if not p.item.admission or p.addon_to:
       continue
     if p.all_checkins.exists():
       continue
@@ -188,6 +188,11 @@ def user_split_positions( order, pids=None ):
     elif order.event.settings.get( 'pretix_ticket_transfer_items_all' ) == False:
       if p.item.id in json.loads( order.event.settings.get( 'pretix_ticket_transfer_items' )):
         pos.append( p )
+  for p in pos:
+    p.price_with_addons = p.price
+    for addon in p.addons.all():
+        if not addon.canceled:
+            p.price_with_addons += addon.price
   return pos
 
 def user_split( order, pids, data ):

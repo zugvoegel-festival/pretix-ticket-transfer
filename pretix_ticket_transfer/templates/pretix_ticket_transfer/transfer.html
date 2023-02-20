@@ -45,7 +45,7 @@
                   {% if i.variation %}{{i.variation}}{% endif %}
                   {% if i.attendee_name_cached %} - {{i.attendee_name_cached}}{% endif %}
                 </div>
-                <div role="cell" class="totalprice price">{{i.price}}</div>
+                <div role="cell" class="totalprice price">{{i.price_with_addons}}</div>
               </div>
             </div>
           {% endfor %}
@@ -121,7 +121,7 @@
                     {% if i.variation %}{{i.variation}}{% endif %}
                     {% if i.attendee_name_cached %} - {{i.attendee_name_cached}}{% endif %}
                   </div>
-                  <div role="cell" class="totalprice price">{{i.price}}</div>
+                  <div role="cell" class="totalprice price">{{i.price_with_addons}}</div>
                 </div>
               </div>
             {% endfor %}
