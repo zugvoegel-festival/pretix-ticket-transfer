@@ -40,7 +40,11 @@
             <input type="hidden" name="pos[]" value="{{i.id}}" />
             <div role="rowgroup">
               <div role="row" class="row cart-row">
-                <div role="cell" class="product">{{i.name}} {{i.variation}}{% if i.attendee_name_cached %} - {{i.attendee_name_cached}}{% endif %}</div>
+                <div role="cell" class="product">
+                  {{i.item.name}}
+                  {% if i.variation %}{{i.variation}}{% endif %}
+                  {% if i.attendee_name_cached %} - {{i.attendee_name_cached}}{% endif %}
+                </div>
                 <div role="cell" class="totalprice price">{{i.price}}</div>
               </div>
             </div>
@@ -98,7 +102,8 @@
               <li>
                 <label>
                   <input type="checkbox" name="pos[]" value="{{i.id}}" />
-                  #{{i.positionid}} {{i.name}} {{i.variation}}
+                  #{{i.positionid}} {{i.item.name}}
+                  {% if i.variation %}{{i.variation}}{% endif %}
                   {% if i.attendee_name_cached %} - {{i.attendee_name_cached}}{% endif %}
                 </label>
               {% endfor %}
@@ -111,7 +116,11 @@
               <input type="hidden" name="pos[]" value="{{i.id}}" />
               <div role="rowgroup">
                 <div role="row" class="row cart-row">
-                  <div role="cell" class="product">{{i.name}} {{i.variation}}{% if i.attendee_name_cached %} - {{i.attendee_name_cached}}{% endif %}</div>
+                  <div role="cell" class="product">
+                    {{i.item.name}}
+                    {% if i.variation %}{{i.variation}}{% endif %}
+                    {% if i.attendee_name_cached %} - {{i.attendee_name_cached}}{% endif %}
+                  </div>
                   <div role="cell" class="totalprice price">{{i.price}}</div>
                 </div>
               </div>
