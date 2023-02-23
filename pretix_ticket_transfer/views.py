@@ -23,6 +23,7 @@ from pretix.base.templatetags.rich_text import rich_text
 from i18nfield.forms import I18nFormField, I18nTextarea
 
 from .user_split import user_split, user_split_positions, TICKET_TRANSFER_START, TICKET_TRANSFER_DONE
+from .utils import get_confirm_messages
 
 class TicketTransferSettingsForm(SettingsForm):
     pretix_ticket_transfer_title = I18nFormField(
@@ -215,25 +216,27 @@ class TicketTransferAccept(EventViewMixin, OrderDetailMixin, TemplateView):
     def post(self, request, *args, **kwargs):
         positions = self.order.positions.select_related('item')
 
-        confirm = request.POST.get('confirm_pages')
-        if not confirm:
-          return redirect(
-              eventreverse(
-                  self.request.event,
-                  "presale:event.order",
-                    kwargs={"order": self.order.code, "secret": self.order.secret} ))
+        msgs = get_confirm_messages(self.request.event)
+        for key, msg in msgs.items():
+            if request.POST.get('confirm_{}'.format(key)) != 'yes':
+                msg = str(_('You need to check all checkboxes to confirm the ticket transfer.'))
+                messages.error(self.request, msg)
+                return redirect(eventreverse(
+                    self.request.event,
+                    "presale:event.order",
+                    kwargs={"order": self.order.code, "secret": self.order.secret}
+                ))
 
         meta = self.order.meta_info_data
         meta['ticket_transfer'] = TICKET_TRANSFER_DONE
-        msgs = meta.get('confirm_messages',[])
-        msgs.append( confirm )
-        meta['confirm_messages'] = msgs
+        meta.setdefault('confirm_messages', [])
+        meta['confirm_messages'] += [str(msg) for msg in msgs.values()]
         self.order.meta_info = json.dumps(meta)
+        self.order.save()
 
-        self.order.save( )
-
-        self.order.log_action('pretix.event.order.consent', data={ 'msg': confirm })
-        messages.success( self.request, _('GTCs accepted') ),
+        for msg in msgs.values():
+            self.order.log_action('pretix.event.order.consent', data={'msg': msg})
+        messages.success(self.request, _('Ticket transfer accepted')),
 
         return redirect(
             eventreverse(

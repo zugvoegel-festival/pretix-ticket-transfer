@@ -26,6 +26,7 @@ from pretix.presale.signals import (
 from pretix.control.signals import nav_event, nav_event_settings, order_search_forms
 
 from .user_split import user_split_positions, TICKET_TRANSFER_START, TICKET_TRANSFER_DONE
+from .utils import get_confirm_messages
 
 @receiver(sass_postamble, dispatch_uid="ticket_transfer_sass_postamble")
 def r_sass_postamble(sender, filename, **kwargs):
@@ -55,12 +56,9 @@ def orderinfo_target(sender, order, request, **kwargs):
 
     if order.meta_info_data.get('ticket_transfer') == TICKET_TRANSFER_START:
       ctx['message'] = str( rich_text( sender.settings.get( 'pretix_ticket_transfer_recipient_message', as_type=LazyI18nString )))
-      for receiver, response in checkout_confirm_messages.send(request.event):
-        if 'pages' in response:
-          ctx['confirm'] = response['pages']
-          template = get_template( 'pretix_ticket_transfer/order_info_accept.html' )
-          return template.render( ctx )
-        #TODO: default
+      ctx['confirm_messages'] = get_confirm_messages(sender)
+      template = get_template( 'pretix_ticket_transfer/order_info_accept.html' )
+      return template.render( ctx )
 
     elif order.meta_info_data.get('ticket_transfer') == TICKET_TRANSFER_DONE:
       ctx['message'] = str(rich_text( sender.settings.get('pretix_ticket_transfer_recipient_done_message', as_type=LazyI18nString )))
