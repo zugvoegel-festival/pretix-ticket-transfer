@@ -27,7 +27,7 @@
         {{message}}
 
         <input type="hidden" name="email" value="{{ email }}" />
-        <input type="hidden" name="email_repeat" value="{{ email }}" />
+        <input type="hidden" name="email_repeat" value="{{ email_repeat }}" />
 
         <h4>{% trans "Recipient" %}:</h4>
         <section>
@@ -167,7 +167,7 @@
             {% trans "Email (repeated)" %}
           </label>
           <div class="col-md-9">
-            <input id="tt-email-0" class="form-control" type="email" name="email_repeat" value="{{email}}"
+            <input id="tt-email-0" class="form-control" type="email" name="email_repeat" value="{{email_repeat}}"
               autocomplete="section-contact email" placeholder="E-mail"
               title="{% trans "Please enter the same email address again to make sure you typed it correctly." %}" required 
               aria-describedby="help-for-tt-email-1" />

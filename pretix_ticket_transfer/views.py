@@ -209,6 +209,7 @@ class TicketTransfer(EventViewMixin, OrderDetailMixin, TemplateView):
         ctx['pos'] = pos
         ctx['totalprice'] = totalprice
         ctx['email'] = email or ""
+        ctx['email_repeat'] = email_repeat or ""
 
         return self.render_to_response(ctx)
 
