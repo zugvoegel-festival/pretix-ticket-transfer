@@ -176,7 +176,7 @@ class TicketTransfer(EventViewMixin, OrderDetailMixin, TemplateView):
         if pids:
           pos = user_split_positions( self.order, pids )
           if not len( pids ) == len( pos ):
-            error = _("Ticketselection")
+            error = _("Invalid ticket selection")
 
         if not step2 and email:
           try:
@@ -237,7 +237,7 @@ class TicketTransferAccept(EventViewMixin, OrderDetailMixin, TemplateView):
 
         for msg in msgs.values():
             self.order.log_action('pretix.event.order.consent', data={'msg': msg})
-        messages.success(self.request, _('Ticket transfer accepted')),
+        messages.success(self.request, _('Ticket transfer completed'))
 
         return redirect(
             eventreverse(

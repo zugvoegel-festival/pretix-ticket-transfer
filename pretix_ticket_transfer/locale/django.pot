@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-04-09 14:56+0000\n"
+"POT-Creation-Date: 2023-02-23 19:59+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,8 +17,9 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: pretix_ticket_transfer/__init__.py:16 pretix_ticket_transfer/signals.py:125
-#: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:6
+#: pretix_ticket_transfer/__init__.py:16 pretix_ticket_transfer/signals.py:123
+#: pretix_ticket_transfer/templates/pretix_ticket_transfer/order_info.html:18
+#: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:5
 msgid "Ticket transfer"
 msgstr ""
 
@@ -26,24 +27,64 @@ msgstr ""
 msgid "Allow ticket transfer to a new order"
 msgstr ""
 
-#: pretix_ticket_transfer/signals.py:40
+#: pretix_ticket_transfer/signals.py:43
 msgid "Ticket transfer recipient email sent"
 msgstr ""
 
-#: pretix_ticket_transfer/signals.py:41
+#: pretix_ticket_transfer/signals.py:44
 msgid "Ticket transfer sender email sent"
 msgstr ""
 
-#: pretix_ticket_transfer/templates/pretix_ticket_transfer/order_info.html:34
+#: pretix_ticket_transfer/signals.py:139
 msgid "Ticket Transfer"
 msgstr ""
 
-#: pretix_ticket_transfer/templates/pretix_ticket_transfer/order_info.html:40
+#: pretix_ticket_transfer/signals.py:156
+msgid "Ticket Transfers"
+msgstr ""
+
+#: pretix_ticket_transfer/signals.py:159
+msgid "no transfer"
+msgstr ""
+
+#: pretix_ticket_transfer/signals.py:160
+msgid "open transfer"
+msgstr ""
+
+#: pretix_ticket_transfer/signals.py:161
+msgid "finalized transfer"
+msgstr ""
+
+#: pretix_ticket_transfer/signals.py:182
+msgid "no Ticket Transfer"
+msgstr ""
+
+#: pretix_ticket_transfer/signals.py:183
+msgid "open Ticket Transfer"
+msgstr ""
+
+#: pretix_ticket_transfer/signals.py:184
+msgid "finalized Ticket Transfer"
+msgstr ""
+
+#: pretix_ticket_transfer/templates/pretix_ticket_transfer/control/stats.html:6
+msgid "TicketTransfer"
+msgstr ""
+
+#: pretix_ticket_transfer/templates/pretix_ticket_transfer/control/stats.html:9
+msgid "Transfers"
+msgstr ""
+
+#: pretix_ticket_transfer/templates/pretix_ticket_transfer/control/stats.html:12
+msgid "count"
+msgstr ""
+
+#: pretix_ticket_transfer/templates/pretix_ticket_transfer/order_info.html:24
 msgid "Transfered tickets"
 msgstr ""
 
-#: pretix_ticket_transfer/templates/pretix_ticket_transfer/order_info_accept.html:26
-msgid "Accept GTCs"
+#: pretix_ticket_transfer/templates/pretix_ticket_transfer/order_info_accept.html:29
+msgid "Confirm"
 msgstr ""
 
 #: pretix_ticket_transfer/templates/pretix_ticket_transfer/settings.html:4
@@ -55,191 +96,190 @@ msgstr ""
 msgid "Save"
 msgstr ""
 
-#: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:10
+#: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:9
 #, python-format
 msgid "Ticket transfer for order: %(code)s"
 msgstr ""
 
-#: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:22
+#: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:21
 #: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:61
 msgid "Confirm ticket transfer"
 msgstr ""
 
-#: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:32
+#: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:30
 msgid "Recipient"
 msgstr ""
 
-#: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:37
+#: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:33
 msgid "Tickets"
 msgstr ""
 
 #: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:50
-#: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:121
-msgid "Total worth of Ticket transfer"
+msgid "Total worth of ticket transfer"
 msgstr ""
 
 #: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:58
 msgid "Go back"
 msgstr ""
 
-#: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:85
+#: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:81
 msgid "Select tickets"
 msgstr ""
 
-#: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:87
-msgid "Selected tickets"
-msgstr ""
-
-#: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:94
-msgid "Select tickets to transfer"
-msgstr ""
-
-#: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:134
+#: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:99
 msgid "Choose recipient"
 msgstr ""
 
-#: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:141
-#: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:157
+#: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:105
+#: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:121
 msgid "required"
 msgstr ""
 
-#: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:142
+#: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:106
 msgid "Email"
 msgstr ""
 
-#: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:147
-#: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:150
-msgid "Please enter the email that should recieve the Tickets"
+#: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:111
+#: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:114
+msgid "Please enter the email of the person who should recieve the tickets"
 msgstr ""
 
-#: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:158
+#: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:122
 msgid "Email (repeated)"
 msgstr ""
 
-#: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:163
-#: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:166
+#: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:127
+#: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:130
 msgid ""
 "Please enter the same email address again to make sure you typed it "
 "correctly."
 msgstr ""
 
-#: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:175
+#: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:138
 msgid "Cancel"
 msgstr ""
 
-#: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:178
-msgid "Transfer tickets"
+#: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:142
+msgid "Continue"
 msgstr ""
 
-#: pretix_ticket_transfer/views.py:28
+#: pretix_ticket_transfer/views.py:30
 msgid "Order info title"
 msgstr ""
 
-#: pretix_ticket_transfer/views.py:31
+#: pretix_ticket_transfer/views.py:33
 msgid "Panel title"
 msgstr ""
 
-#: pretix_ticket_transfer/views.py:35
+#: pretix_ticket_transfer/views.py:37
 msgid "Sender - orderinfo message"
 msgstr ""
 
-#: pretix_ticket_transfer/views.py:38
+#: pretix_ticket_transfer/views.py:40
 msgid "Order info for sender"
 msgstr ""
 
-#: pretix_ticket_transfer/views.py:41
+#: pretix_ticket_transfer/views.py:43
 msgid "Sender - step2 message"
 msgstr ""
 
-#: pretix_ticket_transfer/views.py:44
+#: pretix_ticket_transfer/views.py:46
 msgid "Order info for sender select email step"
 msgstr ""
 
-#: pretix_ticket_transfer/views.py:47
+#: pretix_ticket_transfer/views.py:49
 msgid "Sender - step3 message"
 msgstr ""
 
-#: pretix_ticket_transfer/views.py:50
+#: pretix_ticket_transfer/views.py:52
 msgid "Order info for sender confirm step"
 msgstr ""
 
-#: pretix_ticket_transfer/views.py:53
+#: pretix_ticket_transfer/views.py:55
 msgid "Sender - done message"
 msgstr ""
 
-#: pretix_ticket_transfer/views.py:56
+#: pretix_ticket_transfer/views.py:58
 msgid "Order info for sender after all tickets are sold"
 msgstr ""
 
-#: pretix_ticket_transfer/views.py:60
+#: pretix_ticket_transfer/views.py:62
 msgid "Recipient - orderinfo message"
 msgstr ""
 
-#: pretix_ticket_transfer/views.py:63
+#: pretix_ticket_transfer/views.py:65
 msgid "Order info for recipient"
 msgstr ""
 
-#: pretix_ticket_transfer/views.py:66
+#: pretix_ticket_transfer/views.py:68
 msgid "Recipient - done message"
 msgstr ""
 
-#: pretix_ticket_transfer/views.py:69
+#: pretix_ticket_transfer/views.py:71
 msgid "Order info for recipient after accepting"
 msgstr ""
 
-#: pretix_ticket_transfer/views.py:74
+#: pretix_ticket_transfer/views.py:76
 msgid "Sender - email subject"
 msgstr ""
 
-#: pretix_ticket_transfer/views.py:77
+#: pretix_ticket_transfer/views.py:79
 msgid "Subject for sender email"
 msgstr ""
 
-#: pretix_ticket_transfer/views.py:80
+#: pretix_ticket_transfer/views.py:82
 msgid "Sender - email text"
 msgstr ""
 
-#: pretix_ticket_transfer/views.py:83 pretix_ticket_transfer/views.py:96
+#: pretix_ticket_transfer/views.py:85 pretix_ticket_transfer/views.py:98
 #, python-brace-format
 msgid "placeholders: {list}"
 msgstr ""
 
-#: pretix_ticket_transfer/views.py:87
+#: pretix_ticket_transfer/views.py:89
 msgid "Recipient - email subject"
 msgstr ""
 
-#: pretix_ticket_transfer/views.py:90
+#: pretix_ticket_transfer/views.py:92
 msgid "Subject for recipient email"
 msgstr ""
 
-#: pretix_ticket_transfer/views.py:93
+#: pretix_ticket_transfer/views.py:95
 msgid "Recipient - email text"
 msgstr ""
 
-#: pretix_ticket_transfer/views.py:104
+#: pretix_ticket_transfer/views.py:106
 msgid "All products (including newly created ones)"
 msgstr ""
 
-#: pretix_ticket_transfer/views.py:118
+#: pretix_ticket_transfer/views.py:120
 msgid "Items"
 msgstr ""
 
-#: pretix_ticket_transfer/views.py:176
+#: pretix_ticket_transfer/views.py:179
+msgid "Invalid ticket selection"
+msgstr ""
+
+#: pretix_ticket_transfer/views.py:185
 msgid "Please enter a valid email address"
 msgstr ""
 
-#: pretix_ticket_transfer/views.py:178
+#: pretix_ticket_transfer/views.py:187
 msgid "The email addresses do not match"
 msgstr ""
 
-#: pretix_ticket_transfer/views.py:180
+#: pretix_ticket_transfer/views.py:189
 msgid "Please select ticket(s) for transfer"
 msgstr ""
 
-#: pretix_ticket_transfer/views.py:189
+#: pretix_ticket_transfer/views.py:198
 msgid "Ticket(s) transfered"
 msgstr ""
 
-#: pretix_ticket_transfer/views.py:238
-msgid "GTCs accepted"
+#: pretix_ticket_transfer/views.py:223
+msgid "You need to check all checkboxes to confirm the ticket transfer."
+msgstr ""
+
+#: pretix_ticket_transfer/views.py:240
+msgid "Ticket transfer completed"
 msgstr ""
