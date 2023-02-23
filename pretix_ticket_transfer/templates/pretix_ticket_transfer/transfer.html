@@ -97,19 +97,17 @@
         {% if not pos %}
           <h4>{% trans "Select tickets to transfer" %}</h4>
             {% csrf_token %}
-            <ul>
-              {% for i in orderpositions %}
-              <li>
-                <label>
-                  <input type="checkbox" name="pos[]" value="{{i.id}}" />
-                  #{{i.positionid}} {{i.item.name}}
-                  {% if i.variation %}{{i.variation}}{% endif %}
-                  {% if i.attendee_name_cached %} - {{i.attendee_name_cached}}{% endif %}
-                </label>
-              {% endfor %}
-              </li>
-            <ul>
 
+            {% for i in orderpositions %}
+            <div class="checkbox">
+              <label for="select_pos_{{i.id}}">
+                <input id="select_pos_{{i.id}}" type="checkbox" name="pos[]" value="{{i.id}}" />
+                #{{i.positionid}} {{i.item.name}}
+                {% if i.variation %}{{i.variation}}{% endif %}
+                {% if i.attendee_name_cached %} - {{i.attendee_name_cached}}{% endif %}
+              </label>
+            </div>
+            {% endfor %}
         {% else %}
           <div role="table" class="cart ttcart" aria-label="Selected tickets">
             {% for i in pos %}
