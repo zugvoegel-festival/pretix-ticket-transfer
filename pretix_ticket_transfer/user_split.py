@@ -93,6 +93,7 @@ class TicketTransferChangeManager(OrderChangeManager):
                 self.event, position=op, force_invalidate=True,
             )
             op.save()
+            op.answers.clear()
 
         split_order.total = sum([p.price for p in split_positions if not p.canceled])
 
