@@ -6,3 +6,6 @@ def get_confirm_messages(event):
     for receiver, response in responses:
         msgs.update(response)
     return msgs
+
+def transfer_needs_accept(event):
+    return bool(get_confirm_messages(event))

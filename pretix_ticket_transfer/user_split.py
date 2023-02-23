@@ -15,6 +15,8 @@ from django.utils.translation import gettext as _
 from i18nfield.strings import LazyI18nString
 from pretix.base.services.mail import SendMailException
 
+from .utils import transfer_needs_accept
+
 TICKET_TRANSFER_START = 1
 TICKET_TRANSFER_DONE = 2
 
@@ -234,7 +236,7 @@ def user_split( order, pids, data ):
       meta['doistep'] = {}
       meta['contact_form_data'] = {}
       meta['confirm_messages'] = []
-      meta['ticket_transfer'] = TICKET_TRANSFER_START
+      meta['ticket_transfer'] = TICKET_TRANSFER_START if transfer_needs_accept(event) else TICKET_TRANSFER_DONE
       split_order.meta_info = json.dumps(meta)
 
       split_order.save()
