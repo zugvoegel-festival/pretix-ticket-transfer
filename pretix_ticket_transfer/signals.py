@@ -15,6 +15,7 @@ from i18nfield.strings import LazyI18nString
 from django.contrib.staticfiles import finders
 from pretix.base.models import Order, ItemVariation
 from pretix.base.signals import logentry_display, allow_ticket_download
+from pretix.base.settings import settings_hierarkey, LazyI18nStringList
 from pretix.base.templatetags.rich_text import rich_text
 from pretix.base.templatetags.money import money_filter
 from pretix.multidomain.urlreverse import eventreverse
@@ -27,6 +28,11 @@ from pretix.control.signals import nav_event, nav_event_settings, order_search_f
 
 from .user_split import user_split_positions, TICKET_TRANSFER_START, TICKET_TRANSFER_DONE
 from .utils import get_confirm_messages
+
+
+settings_hierarkey.add_default("pretix_ticket_transfer_confirm_texts", '[]', LazyI18nStringList)
+settings_hierarkey.add_default("pretix_ticket_transfer_global_confirm_texts", 'True', bool)
+
 
 @receiver(sass_postamble, dispatch_uid="ticket_transfer_sass_postamble")
 def r_sass_postamble(sender, filename, **kwargs):
