@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-23 22:22+0100\n"
+"POT-Creation-Date: 2023-02-28 17:44+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -141,44 +141,45 @@ msgstr ""
 msgid "Go back"
 msgstr ""
 
-#: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:81
+#: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:83
 msgid "Select tickets"
 msgstr ""
 
-#: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:99
+#: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:101
 msgid "Choose recipient"
 msgstr ""
 
-#: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:105
-#: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:121
+#: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:107
+#: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:123
 msgid "required"
 msgstr ""
 
-#: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:106
+#: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:108
 msgid "Email"
 msgstr ""
 
-#: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:111
-#: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:114
-msgid "Please enter the email of the person who should recieve the tickets"
+#: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:113
+#: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:116
+msgid ""
+"Please enter the email address of the person who should recieve the tickets."
 msgstr ""
 
-#: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:122
+#: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:124
 msgid "Email (repeated)"
 msgstr ""
 
-#: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:127
-#: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:130
+#: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:129
+#: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:132
 msgid ""
 "Please enter the same email address again to make sure you typed it "
 "correctly."
 msgstr ""
 
-#: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:138
+#: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:140
 msgid "Cancel"
 msgstr ""
 
-#: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:142
+#: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:144
 msgid "Continue"
 msgstr ""
 

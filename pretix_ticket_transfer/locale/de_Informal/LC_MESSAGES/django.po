@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-23 22:22+0100\n"
+"POT-Creation-Date: 2023-02-28 17:44+0100\n"
 "PO-Revision-Date: \n"
 "Last-Translator: alice\n"
 "Language-Team: \n"
@@ -157,48 +157,49 @@ msgstr "Gesamtwert des Tickets Transfers"
 msgid "Go back"
 msgstr "Zurück"
 
-#: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:81
+#: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:83
 msgid "Select tickets"
 msgstr "Tickets auswählen"
 
-#: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:99
+#: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:101
 msgid "Choose recipient"
 msgstr "Empfänger auswählen"
 
-#: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:105
-#: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:121
+#: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:107
+#: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:123
 msgid "required"
 msgstr "Pflichtfeld"
 
-#: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:106
+#: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:108
 msgid "Email"
 msgstr "E-Mail"
 
-#: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:111
-#: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:114
-msgid "Please enter the email of the person who should recieve the tickets"
+#: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:113
+#: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:116
+msgid ""
+"Please enter the email address of the person who should recieve the tickets."
 msgstr ""
-"Bitte hier die E-Mail der Person eingeben, der du die Tickets übertragen "
-"möchtest"
+"Bitte gib hier die E-Mail-Adresse der Person ein, an die du das Ticket "
+"übertragen möchtest."
 
-#: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:122
+#: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:124
 msgid "Email (repeated)"
-msgstr "E-Mail Adresse wiederhohlen"
+msgstr "E-Mail wiederhohlen"
 
-#: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:127
-#: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:130
+#: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:129
+#: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:132
 msgid ""
 "Please enter the same email address again to make sure you typed it "
 "correctly."
 msgstr ""
-"Bitte gib die selbe E-Mail nochmal ein um sicherzugehen, dass sie richtig "
-"geschrieben ist"
+"Bitte gib dieselbe E-Mail-Adresse erneut ein, um sicherzugehen, dass sie "
+"richtig geschrieben ist."
 
-#: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:138
+#: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:140
 msgid "Cancel"
 msgstr "Abbrechen"
 
-#: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:142
+#: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:144
 msgid "Continue"
 msgstr "Fortfahren"
 
@@ -309,7 +310,7 @@ msgstr "Ungültige Ticketauswahl"
 
 #: pretix_ticket_transfer/views.py:225
 msgid "Please enter a valid email address"
-msgstr "Bitte eine gültige E-Mail Adresse eingeben"
+msgstr "Bitte eine gültige E-Mail-Adresse eingeben"
 
 #: pretix_ticket_transfer/views.py:227
 msgid "The email addresses do not match"
