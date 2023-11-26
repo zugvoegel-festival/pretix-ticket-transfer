@@ -1,4 +1,4 @@
-from django.conf.urls import url, include, re_path
+from django.urls import re_path
 from pretix.multidomain import event_url
 
 from .views import (
@@ -22,8 +22,8 @@ event_patterns = [
 ]
 
 urlpatterns = [
-    url(r'^control/event/(?P<organizer>[^/]+)/(?P<event>[^/]+)/ticket_transfer/settings$',
+    re_path(r'^control/event/(?P<organizer>[^/]+)/(?P<event>[^/]+)/ticket_transfer/settings$',
         TicketTransferSettingsView.as_view(), name='settings'),
-    url(r'^control/event/(?P<organizer>[^/]+)/(?P<event>[^/]+)/ticket_transfer/stats$',
+    re_path(r'^control/event/(?P<organizer>[^/]+)/(?P<event>[^/]+)/ticket_transfer/stats$',
         TicketTransferStats.as_view(), name='stats'),
 ]
