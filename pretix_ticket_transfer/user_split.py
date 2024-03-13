@@ -14,6 +14,7 @@ from django.utils.translation import gettext as _
 
 from i18nfield.strings import LazyI18nString
 from pretix.base.services.mail import SendMailException
+from pretix.helpers import OF_SELF
 
 from .utils import transfer_needs_accept
 
@@ -23,6 +24,7 @@ TICKET_TRANSFER_DONE = 2
 class TicketTransferChangeManager(OrderChangeManager):
     """
     dont complete_cancel check
+    no notify
     """
     def commit(self, check_quotas=True):
         if self._committed:
@@ -34,22 +36,30 @@ class TicketTransferChangeManager(OrderChangeManager):
             # Do nothing
             return
 
+        # Clear prefetched objects cache of order. We're going to modify the positions and fees and we have no guarantee
+        # that every operation tuple points to a position/fee instance that has been fetched from the same object cache,
+        # so it's dangerous to keep the cache around.
+        self.order._prefetched_objects_cache = {}
+
         # finally, incorporate difference in payment fees
         self._payment_fee_diff()
 
         with transaction.atomic():
-            with self.order.event.lock():
-                if self.order.status in (Order.STATUS_PENDING, Order.STATUS_PAID):
-                    if check_quotas:
-                        self._check_quotas()
-                    self._check_seats()
-                ## 
-                #self._check_complete_cancel()
-                self._check_and_lock_memberships()
-                try:
-                    self._perform_operations()
-                except TaxRule.SaleNotAllowed:
-                    raise OrderError(self.error_messages['tax_rule_country_blocked'])
+            locked_instance = Order.objects.select_for_update(of=OF_SELF).get(pk=self.order.pk)
+            if locked_instance.last_modified != self.order.last_modified:
+                raise OrderError(error_messages['race_condition'])
+
+            if self.order.status in (Order.STATUS_PENDING, Order.STATUS_PAID):
+                if check_quotas:
+                    self._check_quotas()
+                self._check_seats()
+            self._create_locks()
+            #self._check_complete_cancel()
+            self._check_and_lock_memberships()
+            try:
+                self._perform_operations()
+            except TaxRule.SaleNotAllowed:
+                raise OrderError(self.error_messages['tax_rule_country_blocked'])
             self._recalculate_total_and_payment_fee()
             self._check_paid_price_change()
             self._check_paid_to_free()
@@ -61,11 +71,22 @@ class TicketTransferChangeManager(OrderChangeManager):
             if self.split_order:
                 self.split_order.create_transactions()
 
+        #if self.notify:
+        #    notify_user_changed_order(
+        #        self.order, self.user, self.auth,
+        #        self._invoices if self.event.settings.invoice_email_attachment else []
+        #    )
+        #    if self.split_order:
+        #        notify_user_changed_order(
+        #            self.split_order, self.user, self.auth,
+        #            list(self.split_order.invoices.all()) if self.event.settings.invoice_email_attachment else []
+        #        )
+
         order_changed.send(self.order.event, order=self.order)
 
     """
     no invoice copy
-    no notify
+    clear answers
     """
     def _create_split_order(self, split_positions):
         split_order = Order.objects.get(pk=self.order.pk)
@@ -93,7 +114,17 @@ class TicketTransferChangeManager(OrderChangeManager):
                 self.event, position=op, force_invalidate=True,
             )
             op.save()
+
+        ## clear answers
             op.answers.clear()
+
+        #try:
+        #    ia = modelcopy(self.order.invoice_address)
+        #    ia.pk = None
+        #    ia.order = split_order
+        #    ia.save()
+        #except InvoiceAddress.DoesNotExist:
+        #    pass
 
         split_order.total = sum([p.price for p in split_positions if not p.canceled])
 
@@ -125,6 +156,11 @@ class TicketTransferChangeManager(OrderChangeManager):
             split_order.status = Order.STATUS_PAID
         else:
             split_order.status = Order.STATUS_PENDING
+            #if self.order.status == Order.STATUS_PAID:
+            #    split_order.set_expires(
+            #        now(),
+            #        list(set(p.subevent_id for p in split_positions))
+            #    )
         split_order.save()
 
         if offset_amount > Decimal('0.00'):
