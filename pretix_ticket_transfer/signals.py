@@ -4,26 +4,17 @@ from django.dispatch import receiver
 from django.template.loader import get_template
 from django.middleware import csrf
 from django.urls import resolve, reverse
-from django.db.models import Exists
 from django import forms
-from django.shortcuts import redirect
-from django.utils.http import urlencode
 from django.utils.html import escape
 from django.utils.translation import gettext_lazy as _
 from django.utils.safestring import mark_safe
 from i18nfield.strings import LazyI18nString
-from django.contrib.staticfiles import finders
 from pretix.base.models import Order, ItemVariation
 from pretix.base.signals import logentry_display, allow_ticket_download
 from pretix.base.settings import settings_hierarkey, LazyI18nStringList
 from pretix.base.templatetags.rich_text import rich_text
 from pretix.base.templatetags.money import money_filter
-from pretix.multidomain.urlreverse import eventreverse
-from pretix.presale.signals import (
-    order_info_top,
-    order_info,
-    sass_postamble,
-    checkout_confirm_messages )
+from pretix.presale.signals import order_info_top, order_info
 from pretix.control.signals import nav_event, nav_event_settings, order_search_forms
 
 from .user_split import user_split_positions, TICKET_TRANSFER_START, TICKET_TRANSFER_DONE
@@ -33,14 +24,6 @@ from .utils import get_confirm_messages
 settings_hierarkey.add_default("pretix_ticket_transfer_confirm_texts", '[]', LazyI18nStringList)
 settings_hierarkey.add_default("pretix_ticket_transfer_global_confirm_texts", 'True', bool)
 
-
-@receiver(sass_postamble, dispatch_uid="ticket_transfer_sass_postamble")
-def r_sass_postamble(sender, filename, **kwargs):
-  out = []
-  if filename == "main.scss":
-    with open(finders.find('pretix_ticket_transfer/scss/theme.scss'), 'r') as fp:
-      out.append(fp.read())
-  return "\n".join(out)
 
 @receiver(signal=logentry_display, dispatch_uid="ticket_transfer_logentry_display")
 def pretixcontrol_logentry_display(sender, logentry, **kwargs):
