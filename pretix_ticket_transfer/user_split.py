@@ -20,6 +20,7 @@ from .utils import transfer_needs_accept
 
 TICKET_TRANSFER_START = 1
 TICKET_TRANSFER_DONE = 2
+TICKET_TRANSFER_SENT = 23
 
 class TicketTransferChangeManager(OrderChangeManager):
     """
@@ -43,6 +44,7 @@ class TicketTransferChangeManager(OrderChangeManager):
 
         # finally, incorporate difference in payment fees
         self._payment_fee_diff()
+        self._check_order_size()
 
         with transaction.atomic():
             locked_instance = Order.objects.select_for_update(of=OF_SELF).get(pk=self.order.pk)
@@ -275,8 +277,12 @@ def user_split( order, pids, data ):
       meta['confirm_messages'] = []
       meta['ticket_transfer'] = TICKET_TRANSFER_START if transfer_needs_accept(event) else TICKET_TRANSFER_DONE
       split_order.meta_info = json.dumps(meta)
-
       split_order.save()
+
+      meta = order.meta_info_data
+      meta['ticket_transfer_sent'] = TICKET_TRANSFER_SENT
+      order.meta_info = json.dumps(meta)
+      order.save()
 
       notify_user_split_order_source(
           order, ocm.user, ocm.auth,

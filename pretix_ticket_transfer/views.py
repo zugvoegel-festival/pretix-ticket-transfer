@@ -1,4 +1,5 @@
 import json
+import ast
 import operator
 from django import forms
 from django.http import Http404
@@ -27,7 +28,7 @@ from pretix.multidomain.urlreverse import eventreverse
 from pretix.base.templatetags.rich_text import rich_text
 from i18nfield.forms import I18nFormField, I18nTextarea
 
-from .user_split import user_split, user_split_positions, TICKET_TRANSFER_START, TICKET_TRANSFER_DONE
+from .user_split import user_split, user_split_positions, TICKET_TRANSFER_START, TICKET_TRANSFER_DONE, TICKET_TRANSFER_SENT
 from .utils import get_confirm_messages
 
 class TicketTransferSettingsForm(SettingsForm):
@@ -293,18 +294,48 @@ class TicketTransferStats(EventPermissionRequiredMixin, TemplateView):
         ctx = super().get_context_data(*args, **kwargs)
         ctx['rows'] = []
 
-        from django.db import connection
+        map = {
+            TICKET_TRANSFER_START: 'start',
+            TICKET_TRANSFER_DONE: 'done',
+            TICKET_TRANSFER_SENT: 'sent',
+        } 
+        counter = {'all':0, 'start':0, 'done':0, 'sent':0}
+        def count(*i):
+          counter['all']+= 1
+          for k in i:
+            k = map.get(k,k)
+            print(f'k {k}')
+            counter[k] = counter.get(k,0) + 1
 
-        with connection.cursor() as cursor:
-          cursor.execute( "select * from pretixbase_order" )
-          #cursor.execute( "select *, meta_info::json->'ticket_transfer' from pretixbase_order where meta_info::json->>'ticket_transfer'='1'" )
-          #cursor.execute( "select meta_info::json->>'ticket_transfer' as ticket_transfer, count( * ) as count from pretixbase_order where meta_info like '%ticket_transfer%' group by meta_info::json->>'ticket_transfer'" )
-          #cursor.execute( "select meta_info::json->'ticket_transfer' as ticket_transfer from pretixbase_order where meta_info like '%ticket_transfer%'" )
-          #cursor.execute( "select meta_info::json #>> '{ticket_transfer}' as ticket_transfer from pretixbase_order where meta_info like '%ticket_transfer%'" )
-          for row in cursor.fetchall():
-            ctx['rows'].append( row )
 
-        #ctx['ordercount'] = len( Order.objects.raw( "select *, meta_info::json->>'ticket_transfer' from pretixbase_order where meta_info::json->>'ticket_transfer'='1'" ))
+        orders = Order.objects.filter(
+                event=self.request.event,
+                meta_info__contains='"ticket_transfer":')
+        for o in orders:
+          count(o.meta_info_data.get('ticket_transfer'), f'{o.status}')
+          #count(o.meta_info_data.get('ticket_transfer'))
+
+
+        sent = Order.objects.filter(
+                event=self.request.event,
+                meta_info__contains='"ticket_transfer_sent": 23')
+        for o in sent:
+          count(o.meta_info_data.get('ticket_transfer_sent'), f'sent_{o.status}')
+
+        print(counter)
+        ctx['counter'] = counter
 
         return ctx
 
+
+        #orders = Order.objects.raw("select id,code,meta_info from pretixbase_order where meta_info like '%%ticket_transfer%%'")
+
+        #from django.db import connection
+        #with connection.cursor() as cursor:
+        #  cursor.execute(
+        #      """
+        #        select meta_info::json->'ticket_transfer' #>> '{}' as ticket_transfer from pretixbase_order where meta_info like '%ticket_transfer%'
+        #      """)
+
+        #orders = Order.objects.filter(order__meta_info__ticket_transfer)
+        #orders = Order.objects.raw("select id,code,meta_info from pretixbase_order where meta_info like '%%ticket_transfer%%'")

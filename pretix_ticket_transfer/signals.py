@@ -17,7 +17,7 @@ from pretix.base.templatetags.money import money_filter
 from pretix.presale.signals import order_info_top, order_info
 from pretix.control.signals import nav_event, nav_event_settings, order_search_forms
 
-from .user_split import user_split_positions, TICKET_TRANSFER_START, TICKET_TRANSFER_DONE
+from .user_split import user_split_positions, TICKET_TRANSFER_START, TICKET_TRANSFER_DONE, TICKET_TRANSFER_SENT
 from .utils import get_confirm_messages
 
 
@@ -150,18 +150,40 @@ class TransferSearchForm(forms.Form):
             ("2", _("finalized transfer")),
         ),
     )
+    ticket_transfer_sent = forms.ChoiceField(
+        required=False,
+        label=_("Ticket Transfers Outgoing"),
+        choices=(
+            ("", "--------"),
+            ("0", _("no transfer")),
+            ("23", _("sent transfer")),
+        ),
+    )
 
     def __init__(self, *args, event=None, **kwargs):
         self.event = event
         super().__init__(*args, **kwargs)
 
     def filter_qs(self, queryset):
+        print(self.cleaned_data)
         status = self.cleaned_data.get("ticket_transfer")
         if status:
-            if status == "1":
+            if status == str(TICKET_TRANSFER_START):
                 queryset = queryset.filter(
                   meta_info__contains='"ticket_transfer": 1',
                 )
+            if status == str(TICKET_TRANSFER_DONE):
+                queryset = queryset.filter(
+                  meta_info__contains='"ticket_transfer": 2',
+                )
+        sent = self.cleaned_data.get("ticket_transfer_sent")
+        if sent:
+            print(f'sent {sent}')
+            if sent == str(TICKET_TRANSFER_SENT):
+                queryset = queryset.filter(
+                  meta_info__contains='"ticket_transfer_sent": 23',
+                )
+
         return queryset
 
     def filter_to_strings(self):
@@ -180,5 +202,5 @@ class TransferSearchForm(forms.Form):
 
 @receiver(order_search_forms)
 def ticket_transfer_search_forms(request, sender, **kwargs):
-    return TransferSearchForm(request.GET, event=sender, prefix="swap")
+    return TransferSearchForm(request.GET, event=sender, prefix="ticket_transfer")
 
