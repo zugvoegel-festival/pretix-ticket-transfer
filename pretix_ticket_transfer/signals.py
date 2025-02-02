@@ -28,11 +28,38 @@ settings_hierarkey.add_default("pretix_ticket_transfer_global_confirm_texts", 'T
 @receiver(signal=logentry_display, dispatch_uid="ticket_transfer_logentry_display")
 def pretixcontrol_logentry_display(sender, logentry, **kwargs):
   event_type = logentry.action_type
+  data = json.loads(logentry.data)
+
+  event = sender
+
+  if event_type == 'pretix_ticket_transfer.changed.split':
+     old_item = str(event.items.get(pk=data['old_item']))
+     if data['old_variation']:
+         old_item += ' - ' + str(ItemVariation.objects.get(pk=data['old_variation']))
+     url = reverse('control:event.order', kwargs={
+         'event': event.slug,
+         'organizer': event.organizer.slug,
+         'code': data['new_order']
+     })
+     text = _('The order has been changed:')
+     return mark_safe(escape(text) + ' ' + _('Position #{posid} ({old_item}, {old_price}) split into new order: {order}').format(
+         old_item=escape(old_item),
+         posid=data.get('positionid', '?'),
+         order='<a href="{}">{}</a>'.format(url, data['new_order']),
+         old_price=money_filter(Decimal(data['old_price']), event.currency),
+     ))
+
+
+
   plains = {
     'pretix.event.order.email.ticket_transfer_recipient': _('Ticket transfer recipient email sent'),
-    'pretix.event.order.email.ticket_transfer_sender': _('Ticket transfer sender email sent') }
+    'pretix.event.order.email.ticket_transfer_sender': _('Ticket transfer sender email sent'),
+    'pretix_ticket_transfer.changed.split_from': _('This order has been created by splitting the order {order}').format(order=data.get('original_order'))
+  }
+
   if event_type in plains:
     return plains[event_type]
+
 
 @receiver(order_info_top, dispatch_uid="ticket_transfer_order_info_target")
 def orderinfo_target(sender, order, request, **kwargs):

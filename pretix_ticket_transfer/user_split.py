@@ -98,12 +98,12 @@ class TicketTransferChangeManager(OrderChangeManager):
         split_order.secret = generate_secret()
         split_order.require_approval = self.order.require_approval and any(p.requires_approval(invoice_address=self._invoice_address) for p in split_positions)
         split_order.save()
-        split_order.log_action('pretix.event.order.changed.split_from', user=self.user, auth=self.auth, data={
+        split_order.log_action('pretix_ticket_transfer.changed.split_from', user=self.user, auth=self.auth, data={
             'original_order': self.order.code
         })
 
         for op in split_positions:
-            self.order.log_action('pretix.event.order.changed.split', user=self.user, auth=self.auth, data={
+            self.order.log_action('pretix_ticket_transfer.changed.split', user=self.user, auth=self.auth, data={
                 'position': op.pk,
                 'positionid': op.positionid,
                 'old_item': op.item.pk,
