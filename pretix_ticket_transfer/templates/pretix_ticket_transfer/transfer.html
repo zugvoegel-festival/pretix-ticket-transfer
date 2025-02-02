@@ -1,6 +1,7 @@
 {% extends "pretixpresale/event/base.html" %}
 {% load i18n %}
 {% load eventurl %}
+{% load money %}
 {% load static %}
 {% block title %}{% trans "Ticket transfer" %}{% endblock %}
 {% block content %}
@@ -41,14 +42,14 @@
                             {% if i.variation %}{{i.variation}}{% endif %}
                             {% if i.attendee_name_cached %} - {{i.attendee_name_cached}}{% endif %}
                         </div>
-                        <div role="cell" class="totalprice price">{{i.price_with_addons}}</div>
+                        <div role="cell" class="totalprice price">{{i.price_with_addons |money:event.currency }}</div>
                     </div>
                 </div>
             {% endfor %}
             <div role="rowgroup">
                 <div role="row" class="row cart-row total">
                     <div role="cell" class="product">{% trans "Total worth of ticket transfer" %}</div>
-                    <div role="cell" class="totalprice price">{{totalprice}}</div>
+                    <div role="cell" class="totalprice price">{{totalprice |money:event.currency }}</div>
                 </div>
             </div>
         </div>
