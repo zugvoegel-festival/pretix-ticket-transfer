@@ -181,8 +181,8 @@ class TicketTransferChangeManager(OrderChangeManager):
                 info=json.dumps({'orders': [split_order.code]})
             )
 
-        if split_order.total != Decimal('0.00') and self.order.invoices.filter(is_cancellation=False).last():
-            generate_invoice(split_order)
+        #if split_order.total != Decimal('0.00') and self.order.invoices.filter(is_cancellation=False).last():
+        #    generate_invoice(split_order)
 
         order_split.send(sender=self.order.event, original=self.order, split_order=split_order)
         return split_order
