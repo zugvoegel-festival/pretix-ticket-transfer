@@ -1,5 +1,5 @@
 [plugin]
 package = "pretix-ticket-transfer"
-modules = [ "pretix_ticket-transfer" ]
+modules = [ "pretix_ticket_transfer" ]
 marketplace_name = "ticket-transfer"
 
