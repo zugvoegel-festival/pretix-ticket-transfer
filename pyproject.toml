@@ -1,0 +1,42 @@
+[project]
+name = "pretix-ticket-transfer"
+dynamic = ["version"]
+description = "Allow to transfert ticket to new account"
+readme = "README.rst"
+license = {text = "Apache"}
+keywords = ["pretix"]
+authors = [
+    {name = "alice", email = "dev@kulturkosmos.de"},
+]
+maintainers = [
+    {name = "alice", email = "dev@kulturkosmos.de"},
+]
+
+dependencies = [
+]
+
+[project.entry-points."pretix.plugin"]
+pretix_ticket_transfer = "pretix_ticket_transfer:PretixPluginMeta"
+
+[project.entry-points."distutils.commands"]
+build = "pretix_plugin_build.build:CustomBuild"
+
+[build-system]
+requires = [
+    "setuptools",
+    "pretix-plugin-build",
+]
+
+[project.urls]
+homepage = "https://git.kulturkosmos.de/ticketing/pretix-ticket-transfer"
+repository = "https://git.kulturkosmos.de/ticketing/pretix-ticket-transfer"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.dynamic]
+version = {attr = "pretix_ticket_transfer.__version__"}
+
+[tool.setuptools.packages.find]
+include = ["pretix*"]
+namespaces = false

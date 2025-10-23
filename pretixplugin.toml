@@ -1,0 +1,5 @@
+[plugin]
+package = "pretix-ticket-transfer"
+modules = [ "pretix_ticket-transfer" ]
+marketplace_name = "ticket-transfer"
+
