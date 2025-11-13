@@ -89,7 +89,7 @@ msgstr "Ticket Transfer"
 #, fuzzy
 #| msgid "Transfer tickets"
 msgid "Transfers"
-msgstr "Tickets transferieren"
+msgstr "Ticket(s) transferieren"
 
 #: pretix_ticket_transfer/templates/pretix_ticket_transfer/control/stats.html:12
 msgid "count"
@@ -97,7 +97,7 @@ msgstr ""
 
 #: pretix_ticket_transfer/templates/pretix_ticket_transfer/order_info.html:24
 msgid "Transfered tickets"
-msgstr "Transferierte Tickets"
+msgstr "Transferierte Ticket(s)"
 
 #: pretix_ticket_transfer/templates/pretix_ticket_transfer/order_info_accept.html:29
 msgid "Confirm"
@@ -146,12 +146,12 @@ msgid "Recipient"
 msgstr "Empfänger"
 
 #: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:33
-msgid "Tickets"
-msgstr "Tickets"
+msgid "Ticket(s)"
+msgstr "Ticket(s)"
 
 #: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:50
 msgid "Total worth of ticket transfer"
-msgstr "Gesamtwert des Tickets Transfers"
+msgstr "Gesamtwert des Ticket Transfers"
 
 #: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:58
 msgid "Go back"
@@ -159,7 +159,7 @@ msgstr "Zurück"
 
 #: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:83
 msgid "Select tickets"
-msgstr "Tickets auswählen"
+msgstr "Ticket(s) auswählen"
 
 #: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:101
 msgid "Choose recipient"
