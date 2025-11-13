@@ -63,13 +63,13 @@ def pretixcontrol_logentry_display(sender, logentry, **kwargs):
 
 @receiver(order_info_top, dispatch_uid="ticket_transfer_order_info_target")
 def orderinfo_target(sender, order, request, **kwargs):
-  if order.meta_info_data and order.meta_info_data.get('ticket_transfer'):
-    ctx = {
-      'order': order,
-      'event': sender,
-      'title': str( sender.settings.get('pretix_ticket_transfer_title', as_type=LazyI18nString )),
-      'csrf_token': csrf.get_token( request ) }
+  ctx = {
+    'order': order,
+    'event': sender,
+    'title': str( sender.settings.get('pretix_ticket_transfer_title', as_type=LazyI18nString )),
+    'csrf_token': csrf.get_token( request ) }
 
+  if order.meta_info_data and order.meta_info_data.get('ticket_transfer'):
     if order.meta_info_data.get('ticket_transfer') == TICKET_TRANSFER_START:
       ctx['message'] = str( rich_text( sender.settings.get( 'pretix_ticket_transfer_recipient_message', as_type=LazyI18nString )))
       ctx['confirm_messages'] = get_confirm_messages(sender)
@@ -82,7 +82,13 @@ def orderinfo_target(sender, order, request, **kwargs):
       if ctx['message']:
         return template.render( ctx )
 
-    return False
+  elif order.meta_info_data and order.meta_info_data.get('ticket_transfer_sent'):
+    ctx['message'] = str(rich_text( sender.settings.get('pretix_ticket_transfer_done_message', as_type=LazyI18nString )))
+    template = get_template( 'pretix_ticket_transfer/order_info_done.html' )
+    if ctx['message']:
+      return template.render( ctx )
+
+  return False
 
 @receiver(order_info, dispatch_uid="ticket_transfer_order_info_source")
 def orderinfo_source(sender, order, request, **kwargs):
