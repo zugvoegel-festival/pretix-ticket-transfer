@@ -107,6 +107,76 @@ class TicketTransferSettingsForm(SettingsForm):
         help_text=_('placeholders: {list}'.format(list = ', '.join(['{code}', '{event}', '{event_slug}', '{name}', '{total}', '{total_with_currency}', '{url}']))),
         widget_kwargs={'attrs': { 'rows': '8' }} )
 
+    # New flow: Pending payment email (to new owner)
+    pretix_ticket_transfer_pending_payment_subject = I18nFormField(
+        label=_("New owner - pending payment email subject"),
+        required=False,
+        widget=I18nTextarea,
+        help_text=_("Subject for email to new owner (payment required)"),
+        widget_kwargs={'attrs': { 'rows': '1' }} )
+    pretix_ticket_transfer_pending_payment_mailtext = I18nFormField(
+        label=_("New owner - pending payment email text"),
+        required=False,
+        widget=I18nTextarea,
+        help_text=_('placeholders: {list}'.format(list = ', '.join(['{code}', '{event}', '{event_slug}', '{name}', '{total}', '{total_with_currency}', '{url}', '{payment_url}']))),
+        widget_kwargs={'attrs': { 'rows': '8' }} )
+
+    # New flow: Transfer initiated email (to old owner)
+    pretix_ticket_transfer_initiated_subject = I18nFormField(
+        label=_("Old owner - transfer initiated email subject"),
+        required=False,
+        widget=I18nTextarea,
+        help_text=_("Subject for email to old owner (transfer initiated)"),
+        widget_kwargs={'attrs': { 'rows': '1' }} )
+    pretix_ticket_transfer_initiated_mailtext = I18nFormField(
+        label=_("Old owner - transfer initiated email text"),
+        required=False,
+        widget=I18nTextarea,
+        help_text=_('placeholders: {list}'.format(list = ', '.join(['{code}', '{event}', '{event_slug}', '{name}', '{total}', '{total_with_currency}', '{url}']))),
+        widget_kwargs={'attrs': { 'rows': '8' }} )
+
+    # New flow: Transfer completed email (to old owner)
+    pretix_ticket_transfer_completed_old_owner_subject = I18nFormField(
+        label=_("Old owner - transfer completed email subject"),
+        required=False,
+        widget=I18nTextarea,
+        help_text=_("Subject for email to old owner (transfer completed, refund processed)"),
+        widget_kwargs={'attrs': { 'rows': '1' }} )
+    pretix_ticket_transfer_completed_old_owner_mailtext = I18nFormField(
+        label=_("Old owner - transfer completed email text"),
+        required=False,
+        widget=I18nTextarea,
+        help_text=_('placeholders: {list}'.format(list = ', '.join(['{code}', '{event}', '{event_slug}', '{name}', '{total}', '{total_with_currency}', '{url}']))),
+        widget_kwargs={'attrs': { 'rows': '8' }} )
+
+    # New flow: Transfer completed email (to new owner)
+    pretix_ticket_transfer_completed_new_owner_subject = I18nFormField(
+        label=_("New owner - transfer completed email subject"),
+        required=False,
+        widget=I18nTextarea,
+        help_text=_("Subject for email to new owner (transfer completed)"),
+        widget_kwargs={'attrs': { 'rows': '1' }} )
+    pretix_ticket_transfer_completed_new_owner_mailtext = I18nFormField(
+        label=_("New owner - transfer completed email text"),
+        required=False,
+        widget=I18nTextarea,
+        help_text=_('placeholders: {list}'.format(list = ', '.join(['{code}', '{event}', '{event_slug}', '{name}', '{total}', '{total_with_currency}', '{url}']))),
+        widget_kwargs={'attrs': { 'rows': '8' }} )
+
+    # Optional: Formular-Texte
+    pretix_ticket_transfer_bank_details_intro = I18nFormField(
+        label=_("Bank details form - introduction text"),
+        required=False,
+        widget=I18nTextarea,
+        help_text=_("Introduction text shown above the bank details form"),
+        widget_kwargs={'attrs': { 'rows': '3' }} )
+    pretix_ticket_transfer_step2_title = I18nFormField(
+        label=_("Step 2 - title"),
+        required=False,
+        widget=I18nTextarea,
+        help_text=_("Title for the bank details step"),
+        widget_kwargs={'attrs': { 'rows': '1' }} )
+
     def __init__(self, *args, **kwargs):
        event = self.event = kwargs.pop('event')
        super().__init__(*args, **kwargs)

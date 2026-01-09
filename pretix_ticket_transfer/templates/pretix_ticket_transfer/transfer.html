@@ -3,6 +3,7 @@
 {% load eventurl %}
 {% load money %}
 {% load static %}
+{% load rich_text %}
 {% block title %}{% trans "Ticket transfer" %}{% endblock %}
 {% block content %}
 
@@ -85,10 +86,22 @@
 {% elif step2 %}
 <div class="panel panel-default">
     <div class="panel-heading">
-        <h3 class="panel-title">{% trans "Bank Details for Refund" %}</h3>
+        <h3 class="panel-title">
+            {% if event.settings.pretix_ticket_transfer_step2_title %}
+                {{ event.settings.pretix_ticket_transfer_step2_title|rich_text }}
+            {% else %}
+                {% trans "Bank Details for Refund" %}
+            {% endif %}
+        </h3>
     </div>
     <div class="panel-body">
-        <p>{% trans "Please enter your bank details so we can process your refund once the new owner has paid for the tickets." %}</p>
+        <p>
+            {% if event.settings.pretix_ticket_transfer_bank_details_intro %}
+                {{ event.settings.pretix_ticket_transfer_bank_details_intro|rich_text }}
+            {% else %}
+                {% trans "Please enter your bank details so we can process your refund once the new owner has paid for the tickets." %}
+            {% endif %}
+        </p>
 
         <input type="hidden" name="email" value="{{ email }}" />
         <input type="hidden" name="email_repeat" value="{{ email }}" />

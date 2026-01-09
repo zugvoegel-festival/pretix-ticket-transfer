@@ -225,9 +225,10 @@ def notify_user_transfer_pending_payment(order, user=None, auth=None, invoices=[
     with language(order.locale, order.event.settings.region):
         email_template = order.event.settings.get('pretix_ticket_transfer_pending_payment_mailtext', as_type=LazyI18nString)
         if not email_template:
-            # Fallback to default message
+            # Fallback to default message (localized)
+            default_text = _('You have received a ticket transfer. Please complete your payment to finalize the transfer.\n\nOrder: {code}\nTotal: {total_with_currency}\n\nPayment link: {url}')
             email_template = LazyI18nString({
-                'en': 'You have received a ticket transfer. Please complete your payment to finalize the transfer.\n\nOrder: {code}\nTotal: {total_with_currency}\n\nPayment link: {url}'
+                order.locale or 'en': str(default_text)
             })
         email_subject = str(order.event.settings.get('pretix_ticket_transfer_pending_payment_subject', as_type=LazyI18nString) or _('Ticket Transfer - Payment Required')).format(code=order.code)
         email_context = get_email_context(event=order.event, order=order)
@@ -254,8 +255,10 @@ def notify_user_transfer_initiated(order, user=None, auth=None, invoices=[]):
     with language(order.locale, order.event.settings.region):
         email_template = order.event.settings.get('pretix_ticket_transfer_initiated_mailtext', as_type=LazyI18nString)
         if not email_template:
+            # Fallback to default message (localized)
+            default_text = _('Your ticket transfer has been initiated. The new owner will receive an email with payment instructions. You will receive a refund once they complete payment.')
             email_template = LazyI18nString({
-                'en': 'Your ticket transfer has been initiated. The new owner will receive an email with payment instructions. You will receive a refund once they complete payment.'
+                order.locale or 'en': str(default_text)
             })
         email_subject = str(order.event.settings.get('pretix_ticket_transfer_initiated_subject', as_type=LazyI18nString) or _('Ticket Transfer Initiated')).format(code=order.code)
         email_context = get_email_context(event=order.event, order=order)
@@ -272,8 +275,10 @@ def notify_user_transfer_completed_old_owner(order, user=None, auth=None, invoic
     with language(order.locale, order.event.settings.region):
         email_template = order.event.settings.get('pretix_ticket_transfer_completed_old_owner_mailtext', as_type=LazyI18nString)
         if not email_template:
+            # Fallback to default message (localized)
+            default_text = _('Your ticket transfer has been completed. The new owner has paid and your refund has been processed.')
             email_template = LazyI18nString({
-                'en': 'Your ticket transfer has been completed. The new owner has paid and your refund has been processed.'
+                order.locale or 'en': str(default_text)
             })
         email_subject = str(order.event.settings.get('pretix_ticket_transfer_completed_old_owner_subject', as_type=LazyI18nString) or _('Ticket Transfer Completed')).format(code=order.code)
         email_context = get_email_context(event=order.event, order=order)
@@ -290,8 +295,10 @@ def notify_user_transfer_completed_new_owner(order, user=None, auth=None, invoic
     with language(order.locale, order.event.settings.region):
         email_template = order.event.settings.get('pretix_ticket_transfer_completed_new_owner_mailtext', as_type=LazyI18nString)
         if not email_template:
+            # Fallback to default message (localized)
+            default_text = _('Your ticket transfer has been completed. The tickets are now yours.')
             email_template = LazyI18nString({
-                'en': 'Your ticket transfer has been completed. The tickets are now yours.'
+                order.locale or 'en': str(default_text)
             })
         email_subject = str(order.event.settings.get('pretix_ticket_transfer_completed_new_owner_subject', as_type=LazyI18nString) or _('Ticket Transfer Completed')).format(code=order.code)
         email_context = get_email_context(event=order.event, order=order)

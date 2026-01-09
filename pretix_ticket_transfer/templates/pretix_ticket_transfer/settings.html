@@ -9,7 +9,43 @@
         {% csrf_token %}
         <fieldset>
             <legend>{% trans "Ticket transfer Settings" %}</legend>
-            {% bootstrap_form form layout="horizontal" %}
+            {% bootstrap_form form layout="horizontal" exclude="pretix_ticket_transfer_pending_payment_subject,pretix_ticket_transfer_pending_payment_mailtext,pretix_ticket_transfer_initiated_subject,pretix_ticket_transfer_initiated_mailtext,pretix_ticket_transfer_completed_old_owner_subject,pretix_ticket_transfer_completed_old_owner_mailtext,pretix_ticket_transfer_completed_new_owner_subject,pretix_ticket_transfer_completed_new_owner_mailtext,pretix_ticket_transfer_bank_details_intro,pretix_ticket_transfer_step2_title" %}
+        </fieldset>
+
+        <fieldset>
+            <legend>{% trans "New Transfer Flow - Email Settings" %}</legend>
+            <div class="help-block">
+                {% blocktrans trimmed %}
+                    Configure email templates for the new transfer flow where the new owner pays for the tickets.
+                {% endblocktrans %}
+            </div>
+
+            <h4>{% trans "New Owner - Pending Payment" %}</h4>
+            {% bootstrap_field form.pretix_ticket_transfer_pending_payment_subject layout="horizontal" %}
+            {% bootstrap_field form.pretix_ticket_transfer_pending_payment_mailtext layout="horizontal" %}
+
+            <h4>{% trans "Old Owner - Transfer Initiated" %}</h4>
+            {% bootstrap_field form.pretix_ticket_transfer_initiated_subject layout="horizontal" %}
+            {% bootstrap_field form.pretix_ticket_transfer_initiated_mailtext layout="horizontal" %}
+
+            <h4>{% trans "Old Owner - Transfer Completed" %}</h4>
+            {% bootstrap_field form.pretix_ticket_transfer_completed_old_owner_subject layout="horizontal" %}
+            {% bootstrap_field form.pretix_ticket_transfer_completed_old_owner_mailtext layout="horizontal" %}
+
+            <h4>{% trans "New Owner - Transfer Completed" %}</h4>
+            {% bootstrap_field form.pretix_ticket_transfer_completed_new_owner_subject layout="horizontal" %}
+            {% bootstrap_field form.pretix_ticket_transfer_completed_new_owner_mailtext layout="horizontal" %}
+        </fieldset>
+
+        <fieldset>
+            <legend>{% trans "Transfer Form - Optional Texts" %}</legend>
+            <div class="help-block">
+                {% blocktrans trimmed %}
+                    Optional texts to customize the transfer form. If not set, default texts will be used.
+                {% endblocktrans %}
+            </div>
+            {% bootstrap_field form.pretix_ticket_transfer_step2_title layout="horizontal" %}
+            {% bootstrap_field form.pretix_ticket_transfer_bank_details_intro layout="horizontal" %}
         </fieldset>
 
         <div class="form-group">
