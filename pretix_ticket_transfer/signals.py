@@ -17,8 +17,12 @@ from pretix.base.templatetags.money import money_filter
 from pretix.presale.signals import order_info_top, order_info
 from pretix.control.signals import nav_event, nav_event_settings, order_search_forms
 
-from .user_split import user_split_positions, TICKET_TRANSFER_START, TICKET_TRANSFER_DONE, TICKET_TRANSFER_SENT
+from .user_split import (
+    user_split_positions, TICKET_TRANSFER_START, TICKET_TRANSFER_DONE, 
+    TICKET_TRANSFER_SENT, TICKET_TRANSFER_PENDING_PAYMENT, complete_transfer_after_payment
+)
 from .utils import get_confirm_messages
+from pretix.base.signals import order_paid
 
 
 settings_hierarkey.add_default("pretix_ticket_transfer_confirm_texts", '[]', LazyI18nStringList)
@@ -236,4 +240,14 @@ class TransferSearchForm(forms.Form):
 @receiver(order_search_forms)
 def ticket_transfer_search_forms(request, sender, **kwargs):
     return TransferSearchForm(request.GET, event=sender, prefix="ticket_transfer")
+
+
+@receiver(order_paid, dispatch_uid="ticket_transfer_order_paid")
+def handle_transfer_payment(sender, order, **kwargs):
+    """
+    When a new owner pays for transferred tickets, complete the transfer
+    and process refund to old owner.
+    """
+    if order.meta_info_data and order.meta_info_data.get('ticket_transfer') == TICKET_TRANSFER_PENDING_PAYMENT:
+        complete_transfer_after_payment(order)
 
