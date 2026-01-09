@@ -1,4 +1,9 @@
-# Ticket Transfer Flow
+# Intermediated Transfer Flow
+
+**Intermediated transfer** with the ticket shop acting as intermediary:
+- Shop collects payment from new owner
+- Shop processes refund to old owner
+- Shop mediates the financial transaction
 
 ## Sequence Diagram (simplified)
 

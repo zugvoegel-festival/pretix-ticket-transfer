@@ -1,14 +1,11 @@
 import json
-import ast
 import operator
 from django import forms
 from django.http import Http404
-from django.utils.http import urlencode
 from django.utils.functional import cached_property
 from django.views.generic import TemplateView
 from django.urls import reverse
-from django.shortcuts import get_object_or_404, redirect
-from django_scopes import scope
+from django.shortcuts import redirect
 from django.middleware import csrf
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
@@ -16,7 +13,7 @@ from django.contrib import messages
 from django.db import transaction
 from django.utils.translation import gettext_lazy as _
 from i18nfield.strings import LazyI18nString
-from pretix.base.models import Event, Order, Item, OrderPosition
+from pretix.base.models import Event, Order, OrderPosition
 from pretix.base.forms import SettingsForm
 from pretix.base.settings import LazyI18nStringList
 from pretix.control.permissions import EventPermissionRequiredMixin
@@ -29,7 +26,7 @@ from pretix.base.templatetags.rich_text import rich_text
 from i18nfield.forms import I18nFormField, I18nTextarea
 
 from .user_split import (
-    user_split, user_split_positions, initiate_transfer_with_payment,
+    user_split_positions, initiate_transfer_with_payment,
     TICKET_TRANSFER_START, TICKET_TRANSFER_DONE, TICKET_TRANSFER_SENT
 )
 from .utils import get_confirm_messages
