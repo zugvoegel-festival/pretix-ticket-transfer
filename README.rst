@@ -3,7 +3,7 @@ Ticket Transfer
 
 This is a plugin for `pretix`_. 
 
-Allow to transfert ticket to new account
+Allow transferring tickets to a new account
 
 Development setup
 -----------------

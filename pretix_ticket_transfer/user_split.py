@@ -61,7 +61,7 @@ class TicketTransferChangeManager(OrderChangeManager):
                     self._check_quotas()
                 self._check_seats()
             self._create_locks()
-            #self._check_complete_cancel()
+            # Intentionally skip _check_complete_cancel for ticket transfers
             self._check_and_lock_memberships()
             try:
                 self._perform_operations()
@@ -79,24 +79,11 @@ class TicketTransferChangeManager(OrderChangeManager):
             if self.split_order:
                 self.split_order.create_transactions()
 
-        #if self.notify:
-        #    notify_user_changed_order(
-        #        self.order, self.user, self.auth,
-        #        self._invoices if self.event.settings.invoice_email_attachment else []
-        #    )
-        #    if self.split_order:
-        #        notify_user_changed_order(
-        #            self.split_order, self.user, self.auth,
-        #            list(self.split_order.invoices.all()) if self.event.settings.invoice_email_attachment else []
-        #        )
-
+        # Intentionally skip notify_user_changed_order; transfer emails are sent separately
         order_changed.send(self.order.event, order=self.order)
 
-    """
-    no invoice copy
-    clear answers
-    """
     def _create_split_order(self, split_positions):
+        """Create split order without copying invoice address; clear attendee answers."""
         split_order = Order.objects.get(pk=self.order.pk)
         split_order.pk = None
         split_order.code = None
@@ -122,17 +109,7 @@ class TicketTransferChangeManager(OrderChangeManager):
                 self.event, position=op, force_invalidate=True,
             )
             op.save()
-
-        ## clear answers
             op.answers.clear()
-
-        #try:
-        #    ia = modelcopy(self.order.invoice_address)
-        #    ia.pk = None
-        #    ia.order = split_order
-        #    ia.save()
-        #except InvoiceAddress.DoesNotExist:
-        #    pass
 
         split_order.total = sum([p.price for p in split_positions if not p.canceled])
 
@@ -164,11 +141,6 @@ class TicketTransferChangeManager(OrderChangeManager):
             split_order.status = Order.STATUS_PAID
         else:
             split_order.status = Order.STATUS_PENDING
-            #if self.order.status == Order.STATUS_PAID:
-            #    split_order.set_expires(
-            #        now(),
-            #        list(set(p.subevent_id for p in split_positions))
-            #    )
         split_order.save()
 
         if offset_amount > Decimal('0.00'):
@@ -186,9 +158,6 @@ class TicketTransferChangeManager(OrderChangeManager):
                 provider='offsetting',
                 info=json.dumps({'orders': [split_order.code]})
             )
-
-        #if split_order.total != Decimal('0.00') and self.order.invoices.filter(is_cancellation=False).last():
-        #    generate_invoice(split_order)
 
         order_split.send(sender=self.order.event, original=self.order, split_order=split_order)
         return split_order
@@ -341,8 +310,8 @@ def initiate_transfer_with_payment(order, pids, data):
     Stores bank info for refund in original order metadata.
     """
     with transaction.atomic():
-        event = order.event
-        positions = OrderPosition.objects.filter(pk__in=pids).select_for_update(nowait=True).all()
+        # Lock selected positions for the duration of the transfer
+        list(OrderPosition.objects.filter(pk__in=pids).select_for_update(nowait=True))
         ocm = TicketTransferChangeManager(
             order,
             notify=False,
@@ -496,14 +465,15 @@ def complete_transfer_after_payment(new_order):
         return True
 
 
-def user_split( order, pids, data ):
+def user_split(order, pids, data):
   with transaction.atomic():
     event = order.event
-    positions = OrderPosition.objects.filter(pk__in=pids).select_for_update(nowait=True).all()
+    # Lock selected positions for the duration of the transfer
+    list(OrderPosition.objects.filter(pk__in=pids).select_for_update(nowait=True))
     ocm = TicketTransferChangeManager(
         order,
         notify=False,
-        reissue_invoice=False )
+        reissue_invoice=False)
 
     pos = user_split_positions( order, pids )
     success = 0

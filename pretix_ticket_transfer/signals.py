@@ -10,7 +10,7 @@ from django.utils.translation import gettext_lazy as _
 from django.utils.safestring import mark_safe
 from i18nfield.strings import LazyI18nString
 from pretix.base.models import Order, ItemVariation
-from pretix.base.signals import logentry_display, allow_ticket_download
+from pretix.base.signals import logentry_display, allow_ticket_download, order_paid
 from pretix.base.settings import settings_hierarkey, LazyI18nStringList
 from pretix.base.templatetags.rich_text import rich_text
 from pretix.base.templatetags.money import money_filter
@@ -18,11 +18,10 @@ from pretix.presale.signals import order_info_top, order_info
 from pretix.control.signals import nav_event, nav_event_settings, order_search_forms
 
 from .user_split import (
-    user_split_positions, TICKET_TRANSFER_START, TICKET_TRANSFER_DONE, 
+    user_split_positions, TICKET_TRANSFER_START, TICKET_TRANSFER_DONE,
     TICKET_TRANSFER_SENT, TICKET_TRANSFER_PENDING_PAYMENT, complete_transfer_after_payment
 )
 from .utils import get_confirm_messages
-from pretix.base.signals import order_paid
 
 
 settings_hierarkey.add_default("pretix_ticket_transfer_confirm_texts", '[]', LazyI18nStringList)
@@ -103,23 +102,20 @@ def orderinfo_source(sender, order, request, **kwargs):
     return False
 
   event = order.event
-  pos = []
+  pos = user_split_positions(order)
   log = []
 
-  pos = user_split_positions( order )
-
-  logentries = order.all_logentries( )
-  for l in logentries:
-    if l.action_type == 'pretix.event.order.changed.split':
-      data = json.loads( l.data )
-      old_item = str( event.items.get(pk=data['old_item']) )
+  for entry in order.all_logentries():
+    if entry.action_type == 'pretix.event.order.changed.split':
+      data = json.loads(entry.data)
+      old_item = str(event.items.get(pk=data['old_item']))
       if data['old_variation']:
-        old_item += ' - ' + str( ItemVariation.objects.get(pk=data['old_variation']) )
-        log.append( mark_safe( '{old_item}, {old_price}'.format(
-            old_item=escape(old_item),
-            old_price=money_filter(Decimal(data['old_price']), event.currency) )))
+        old_item += ' - ' + str(ItemVariation.objects.get(pk=data['old_variation']))
+      log.append(mark_safe('{old_item}, {old_price}'.format(
+          old_item=escape(old_item),
+          old_price=money_filter(Decimal(data['old_price']), event.currency))))
 
-  if not len( pos ) and not len( log ):
+  if not pos and not log:
     return False
 
   ctx = {
@@ -202,7 +198,6 @@ class TransferSearchForm(forms.Form):
         super().__init__(*args, **kwargs)
 
     def filter_qs(self, queryset):
-        print(self.cleaned_data)
         status = self.cleaned_data.get("ticket_transfer")
         if status:
             if status == str(TICKET_TRANSFER_START):
@@ -214,12 +209,10 @@ class TransferSearchForm(forms.Form):
                   meta_info__contains='"ticket_transfer": 2',
                 )
         sent = self.cleaned_data.get("ticket_transfer_sent")
-        if sent:
-            print(f'sent {sent}')
-            if sent == str(TICKET_TRANSFER_SENT):
-                queryset = queryset.filter(
-                  meta_info__contains='"ticket_transfer_sent": 23',
-                )
+        if sent == str(TICKET_TRANSFER_SENT):
+            queryset = queryset.filter(
+              meta_info__contains='"ticket_transfer_sent": 23',
+            )
 
         return queryset
 
