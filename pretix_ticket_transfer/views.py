@@ -1,5 +1,6 @@
 import json
 import operator
+from decimal import Decimal
 from django import forms
 from django.http import Http404
 from django.utils.functional import cached_property
@@ -27,7 +28,7 @@ from pretix.base.templatetags.rich_text import rich_text
 from i18nfield.forms import I18nFormField, I18nTextarea
 
 from .user_split import (
-    user_split_positions, initiate_transfer_with_payment,
+    user_split_positions, initiate_transfer_with_payment, transfer_amount_for_positions,
     TICKET_TRANSFER_START, TICKET_TRANSFER_DONE, TICKET_TRANSFER_SENT
 )
 from .utils import get_confirm_messages
@@ -266,6 +267,13 @@ class TicketTransfer(EventViewMixin, OrderDetailMixin, TemplateView):
         ctx = super().get_context_data(*args, **kwargs)
         ctx['order'] = self.order
         ctx['orderpositions'] = user_split_positions( self.order )
+        ctx['selected_pids'] = set()
+        ctx['pids'] = []
+        ctx['pos'] = []
+        ctx['totalprice'] = Decimal('0.00')
+        ctx['bank_info'] = {}
+        ctx['email'] = ''
+        ctx['email_repeat'] = ''
 
         ctx['title'] = self.order.event.settings.get('pretix_ticket_transfer_title', as_type=LazyI18nString )
         ctx['message'] = str(rich_text( self.order.event.settings.get('pretix_ticket_transfer_step2_message', as_type=LazyI18nString )))
@@ -277,36 +285,26 @@ class TicketTransfer(EventViewMixin, OrderDetailMixin, TemplateView):
 
         error = False
         pos = []
-        pids = request.POST.getlist('pos[]')
+        # Deduplicate: step 3 confirmation posted pos[] twice historically
+        pids = list(dict.fromkeys(request.POST.getlist('pos[]')))
         email = request.POST.get('email')
         email_repeat = request.POST.get('email_repeat')
         confirm = request.POST.get('confirm')
         step2 = request.POST.get('step2')
         step3 = request.POST.get('step3')  # Bank info step
+        # Explicit back navigation (must not collide with Continue)
+        go_back = request.POST.get('go_back')
 
         ctx = self.get_context_data(*args, **kwargs)
         ctx['csrf_token'] = csrf.get_token(request)
 
-        # Get selected positions (skip validation if we're confirming transfer)
-        if pids and not (step3 and confirm):
-          pos = user_split_positions( self.order, pids )
-          if not len( pids ) == len( pos ):
+        if pids:
+          pos = user_split_positions(self.order, pids)
+          if len(pids) != len(pos) and not (step3 and confirm):
             error = _("Invalid ticket selection")
-        else:
-          # If no pids in POST, try to get from previous step
-          pos = []
-          # For confirmation step, get pids from POST directly
-          if step3 and confirm and not pids:
-            pids = request.POST.getlist('pos[]')
-            if pids:
-              pos = user_split_positions( self.order, pids )
 
         # Step 3: Process transfer confirmation (highest priority - check first)
-        if step3 and confirm:
-          # Get pids from POST if not already set
-          if not pids:
-            pids = request.POST.getlist('pos[]')
-          
+        if step3 and confirm and not go_back:
           bank_info = {
             'account_holder': request.POST.get('bank_account_holder', ''),
             'iban': request.POST.get('bank_iban', ''),
@@ -322,6 +320,14 @@ class TicketTransfer(EventViewMixin, OrderDetailMixin, TemplateView):
                     self.request.event,
                     "presale:event.order",
                     kwargs={"order": self.order.code, "secret": self.order.secret} ))
+
+          if not pos or len(pids) != len(pos):
+            messages.error(self.request, _('Invalid ticket selection'))
+            return redirect(
+                eventreverse(
+                    self.request.event,
+                    "presale:event.order",
+                    kwargs={"order": self.order.code, "secret": self.order.secret}))
           
           data = {
             'email': email,
@@ -338,8 +344,35 @@ class TicketTransfer(EventViewMixin, OrderDetailMixin, TemplateView):
                     kwargs={"order": self.order.code, "secret": self.order.secret} ))
           else:
             messages.error( self.request, _('Failed to initiate transfer. Please try again.') )
+            ctx['step3'] = True
+            ctx['email'] = email
+            ctx['bank_info'] = bank_info
+            ctx['message'] = str(rich_text( self.order.event.settings.get('pretix_ticket_transfer_step3_message', as_type=LazyI18nString )))
+            if pids:
+              ctx['pids'] = pids
 
-        # Step 2: Handle bank info form submission (Continue button clicked from step 2)
+        # Go back from step 3 → bank details
+        elif go_back == 'step2':
+          ctx['step2'] = True
+          ctx['email'] = request.POST.get('email', '')
+          ctx['email_repeat'] = request.POST.get('email', '')
+          ctx['bank_info'] = {
+            'account_holder': request.POST.get('bank_account_holder', ''),
+            'iban': request.POST.get('bank_iban', ''),
+            'bic': request.POST.get('bank_bic', ''),
+            'bank_name': request.POST.get('bank_name', ''),
+          }
+          if pids:
+            ctx['pids'] = pids
+
+        # Go back from step 2 → ticket/email selection
+        elif go_back == 'step1':
+          ctx['email'] = request.POST.get('email', '')
+          ctx['email_repeat'] = request.POST.get('email', '')
+          if pids:
+            ctx['pids'] = pids
+
+        # Step 2: Handle bank info form submission (Continue from bank details)
         elif step2 and step3 and not confirm:
           bank_info = {
             'account_holder': request.POST.get('bank_account_holder', ''),
@@ -372,83 +405,51 @@ class TicketTransfer(EventViewMixin, OrderDetailMixin, TemplateView):
             if pids:
               ctx['pids'] = pids
 
-        # Step 1: Select tickets and enter email
-        elif not step2 and not step3 and email:
+        # Step 1: Select tickets and enter email, then continue to bank details.
+        # The Continue button posts step2=1; validate email here before advancing.
+        elif step2 and not step3 and email:
           try:
             validate_email(email)
           except ValidationError:
             error = _("Please enter a valid email address")
           if email != email_repeat:
             error = _("The email addresses do not match")
-          if not len( pids ):
+          if not pids:
             error = _("Please select ticket(s) for transfer")
+          elif len(pids) != len(pos):
+            error = _("Invalid ticket selection")
 
           if error:
-            messages.warning( self.request, error)
+            messages.warning(self.request, error)
+            ctx['email'] = email or ''
+            ctx['email_repeat'] = email_repeat or ''
+            if pids:
+              ctx['pids'] = pids
           else:
-            # Move to step 2: Bank info
             ctx['step2'] = True
             ctx['email'] = email
             ctx['email_repeat'] = email_repeat
             if pids:
               ctx['pids'] = pids
 
-        # Step 2: Show bank info form (coming from step 1, or Go back from step 3)
-        elif step2 and not step3:
-          # Check if this is "Go back" from step 3 (step2 button with empty value)
-          if step2 == '':
-            # Go back to step 1
-            ctx['email'] = request.POST.get('email', '')
-            ctx['email_repeat'] = request.POST.get('email', '')
-            if pids:
-              ctx['pids'] = pids
-          else:
-            # Show step 2 (bank info form) - coming from step 1
-            ctx['step2'] = True
-            ctx['email'] = request.POST.get('email', '')
-            ctx['email_repeat'] = request.POST.get('email', '')
-            ctx['bank_info'] = ctx.get('bank_info', {})
-            # Preserve positions
-            if pids:
-              ctx['pids'] = pids
-            elif not pos:
-              # If no positions yet, get from previous context
-              pos = user_split_positions(self.order)
-              ctx['pids'] = [p.id for p in pos]
-
-        # Step 3: Display confirmation (not submitting yet)
-        elif step3 and not confirm:
-            # Just displaying step 3 confirmation (not submitting yet)
-            # Get bank info and positions from POST or context
-            if not ctx.get('bank_info'):
-              ctx['bank_info'] = {
-                'account_holder': request.POST.get('bank_account_holder', ''),
-                'iban': request.POST.get('bank_iban', ''),
-                'bic': request.POST.get('bank_bic', ''),
-                'bank_name': request.POST.get('bank_name', ''),
-              }
-            ctx['step3'] = True
-            ctx['email'] = ctx.get('email', request.POST.get('email', ''))
-            if pids:
-              ctx['pids'] = pids
-            ctx['message'] = str(rich_text( self.order.event.settings.get('pretix_ticket_transfer_step3_message', as_type=LazyI18nString )))
-
-        # Preserve positions and calculate total
+        # Preserve positions and calculate total (must match refund / pay amount)
         if not pos and pids:
           pos = user_split_positions(self.order, pids)
-        
-        totalprice = 0
-        for position in pos:
-          totalprice+= position.price_with_addons
+
+        totalprice = transfer_amount_for_positions(pos) if pos else Decimal('0.00')
 
         ctx['pos'] = pos
         ctx['totalprice'] = totalprice
         ctx['email'] = ctx.get('email', email or "")
         ctx['email_repeat'] = ctx.get('email_repeat', email_repeat or ctx.get('email', ''))
         ctx['bank_info'] = ctx.get('bank_info', {})
-        
-        # Preserve pids in hidden fields for all steps
+
+        # Preserve pids in hidden fields for all steps; ints for checkbox restore
         ctx['pids'] = pids
+        try:
+            ctx['selected_pids'] = {int(p) for p in pids}
+        except (TypeError, ValueError):
+            ctx['selected_pids'] = set()
 
         return self.render_to_response(ctx)
 
