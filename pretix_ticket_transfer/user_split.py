@@ -358,6 +358,7 @@ def initiate_transfer_with_payment(order, pids, data):
 
             # Store bank info and transfer info in original order
             meta = order.meta_info_data
+            meta['ticket_transfer'] = ''
             meta['ticket_transfer_pending'] = {
                 'to_order': split_order.code,
                 'to_email': data.get('email'),
@@ -510,6 +511,7 @@ def user_split(order, pids, data):
       split_order.save()
 
       meta = order.meta_info_data
+      meta['ticket_transfer'] = ''
       meta['ticket_transfer_sent'] = TICKET_TRANSFER_SENT
       order.meta_info = json.dumps(meta)
       order.save()

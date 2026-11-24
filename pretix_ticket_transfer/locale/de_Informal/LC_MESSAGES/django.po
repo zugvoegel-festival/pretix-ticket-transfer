@@ -145,9 +145,10 @@ msgstr "Ticket Transfer bestätigen"
 msgid "Recipient"
 msgstr "Empfänger"
 
-#: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:33
-msgid "Ticket(s)"
-msgstr "Ticket(s)"
+#: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:51
+#: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:52
+msgid "Selected ticket(s)"
+msgstr "Ausgewählte Ticket(s)"
 
 #: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:50
 msgid "Total worth of ticket transfer"
@@ -158,7 +159,7 @@ msgid "Go back"
 msgstr "Zurück"
 
 #: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:83
-msgid "Select tickets"
+msgid "Select ticket(s)"
 msgstr "Ticket(s) auswählen"
 
 #: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:101
@@ -177,7 +178,8 @@ msgstr "E-Mail"
 #: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:113
 #: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:116
 msgid ""
-"Please enter the email address of the person who should recieve the tickets."
+"Please enter the email address of the person who should receive the "
+"ticket(s)."
 msgstr ""
 "Bitte gib hier die E-Mail-Adresse der Person ein, an die du das Ticket "
 "übertragen möchtest."
@@ -321,7 +323,7 @@ msgid "Please select ticket(s) for transfer"
 msgstr "Bitte wähle Tickets für den Transfer aus"
 
 #: pretix_ticket_transfer/views.py:238
-msgid "Ticket(s) transfered"
+msgid "Ticket(s) transferred"
 msgstr "Ticket(s) transferiert"
 
 #: pretix_ticket_transfer/views.py:263
