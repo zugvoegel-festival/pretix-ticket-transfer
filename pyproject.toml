@@ -1,15 +1,16 @@
 [project]
 name = "pretix-ticket-transfer"
 dynamic = ["version"]
-description = "Allow to transfert ticket to new account"
+description = "Zugvögel pretix ticket transfer (based on Kulturkosmos pretix-ticket-transfer)"
 readme = "README.rst"
 license = {text = "Apache"}
 keywords = ["pretix"]
 authors = [
+    {name = "Zugvögel Festival"},
     {name = "alice", email = "dev@kulturkosmos.de"},
 ]
 maintainers = [
-    {name = "alice", email = "dev@kulturkosmos.de"},
+    {name = "Zugvögel Festival"},
 ]
 
 dependencies = [
@@ -28,8 +29,9 @@ requires = [
 ]
 
 [project.urls]
-homepage = "https://git.kulturkosmos.de/ticketing/pretix-ticket-transfer"
-repository = "https://git.kulturkosmos.de/ticketing/pretix-ticket-transfer"
+homepage = "https://github.com/zugvoegel-festival/pretix-ticket-transfer"
+repository = "https://github.com/zugvoegel-festival/pretix-ticket-transfer"
+upstream = "https://git.kulturkosmos.de/ticketing/pretix-ticket-transfer"
 
 [tool.setuptools]
 include-package-data = true
