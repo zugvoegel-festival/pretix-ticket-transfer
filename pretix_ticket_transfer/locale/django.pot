@@ -129,8 +129,9 @@ msgstr ""
 msgid "Recipient"
 msgstr ""
 
-#: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:33
-msgid "Tickets"
+#: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:51
+#: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:52
+msgid "Selected ticket(s)"
 msgstr ""
 
 #: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:50
@@ -142,7 +143,7 @@ msgid "Go back"
 msgstr ""
 
 #: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:83
-msgid "Select tickets"
+msgid "Select ticket(s)"
 msgstr ""
 
 #: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:101
@@ -161,7 +162,8 @@ msgstr ""
 #: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:113
 #: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:116
 msgid ""
-"Please enter the email address of the person who should recieve the tickets."
+"Please enter the email address of the person who should receive the "
+"ticket(s)."
 msgstr ""
 
 #: pretix_ticket_transfer/templates/pretix_ticket_transfer/transfer.html:124
@@ -301,7 +303,7 @@ msgid "Please select ticket(s) for transfer"
 msgstr ""
 
 #: pretix_ticket_transfer/views.py:238
-msgid "Ticket(s) transfered"
+msgid "Ticket(s) transferred"
 msgstr ""
 
 #: pretix_ticket_transfer/views.py:263

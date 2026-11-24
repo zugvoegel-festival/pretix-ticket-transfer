@@ -13,8 +13,10 @@ class PluginApp(PluginConfig):
 
     class PretixPluginMeta:
         name = gettext_lazy("Ticket transfer")
-        author = "alice"
-        description = gettext_lazy("Allow ticket transfer to a new order")
+        author = "Zugvögel Festival (based on Kulturkosmos / alice)"
+        description = gettext_lazy(
+            "Allow ticket transfer to a new order, with optional payment and refund mediation"
+        )
         visible = True
         version = __version__
         category = "FEATURE"

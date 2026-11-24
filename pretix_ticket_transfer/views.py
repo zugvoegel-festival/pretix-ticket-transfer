@@ -16,6 +16,7 @@ from i18nfield.strings import LazyI18nString
 from pretix.base.models import Event, Order
 from pretix.base.forms import SettingsForm
 from pretix.base.settings import LazyI18nStringList
+from pretix.base.services.placeholders import FormPlaceholderMixin
 from pretix.control.permissions import EventPermissionRequiredMixin
 from pretix.control.views.event import EventSettingsFormView, EventSettingsViewMixin
 from pretix.control.forms.event import ConfirmTextFormset
@@ -31,7 +32,7 @@ from .user_split import (
 )
 from .utils import get_confirm_messages
 
-class TicketTransferSettingsForm(SettingsForm):
+class TicketTransferSettingsForm(FormPlaceholderMixin, SettingsForm):
     pretix_ticket_transfer_title = I18nFormField(
         label=_("Order info title"),
         required=False,
@@ -88,7 +89,6 @@ class TicketTransferSettingsForm(SettingsForm):
         label=_("Sender - email text"),
         required=False,
         widget=I18nTextarea,
-        help_text=_('placeholders: {list}'.format(list = ', '.join(['{code}', '{event}', '{event_slug}', '{name}', '{total}', '{total_with_currency}', '{url}']))),
         widget_kwargs={'attrs': { 'rows': '8' }} )
 
     pretix_ticket_transfer_recipient_subject = I18nFormField(
@@ -101,7 +101,6 @@ class TicketTransferSettingsForm(SettingsForm):
         label=_("Recipient - email text"),
         required=False,
         widget=I18nTextarea,
-        help_text=_('placeholders: {list}'.format(list = ', '.join(['{code}', '{event}', '{event_slug}', '{name}', '{total}', '{total_with_currency}', '{url}']))),
         widget_kwargs={'attrs': { 'rows': '8' }} )
 
     pretix_ticket_transfer_pending_payment_subject = I18nFormField(
@@ -114,7 +113,6 @@ class TicketTransferSettingsForm(SettingsForm):
         label=_("New owner - pending payment email text"),
         required=False,
         widget=I18nTextarea,
-        help_text=_('placeholders: {list}'.format(list = ', '.join(['{code}', '{event}', '{event_slug}', '{name}', '{total}', '{total_with_currency}', '{url}', '{payment_url}']))),
         widget_kwargs={'attrs': { 'rows': '8' }} )
 
     pretix_ticket_transfer_initiated_subject = I18nFormField(
@@ -127,7 +125,6 @@ class TicketTransferSettingsForm(SettingsForm):
         label=_("Old owner - transfer initiated email text"),
         required=False,
         widget=I18nTextarea,
-        help_text=_('placeholders: {list}'.format(list = ', '.join(['{code}', '{event}', '{event_slug}', '{name}', '{total}', '{total_with_currency}', '{url}']))),
         widget_kwargs={'attrs': { 'rows': '8' }} )
 
     pretix_ticket_transfer_completed_old_owner_subject = I18nFormField(
@@ -140,7 +137,6 @@ class TicketTransferSettingsForm(SettingsForm):
         label=_("Old owner - transfer completed email text"),
         required=False,
         widget=I18nTextarea,
-        help_text=_('placeholders: {list}'.format(list = ', '.join(['{code}', '{event}', '{event_slug}', '{name}', '{total}', '{total_with_currency}', '{url}']))),
         widget_kwargs={'attrs': { 'rows': '8' }} )
 
     pretix_ticket_transfer_completed_new_owner_subject = I18nFormField(
@@ -153,7 +149,6 @@ class TicketTransferSettingsForm(SettingsForm):
         label=_("New owner - transfer completed email text"),
         required=False,
         widget=I18nTextarea,
-        help_text=_('placeholders: {list}'.format(list = ', '.join(['{code}', '{event}', '{event_slug}', '{name}', '{total}', '{total_with_currency}', '{url}']))),
         widget_kwargs={'attrs': { 'rows': '8' }} )
 
     pretix_ticket_transfer_bank_details_intro = I18nFormField(
@@ -193,6 +188,18 @@ class TicketTransferSettingsForm(SettingsForm):
          queryset=event.items.all() )
 
        self.fields['pretix_ticket_transfer_global_confirm_texts'] = forms.BooleanField(label=_("Show general confirmation texts"), required=False)
+       self._set_field_placeholders('pretix_ticket_transfer_sender_mailtext', ['event', 'order'], rich=True)
+       self._set_field_placeholders('pretix_ticket_transfer_sender_subject', ['event', 'order'])
+       self._set_field_placeholders('pretix_ticket_transfer_recipient_mailtext', ['event', 'order'], rich=True)
+       self._set_field_placeholders('pretix_ticket_transfer_recipient_subject', ['event', 'order'])
+       self._set_field_placeholders('pretix_ticket_transfer_pending_payment_mailtext', ['event', 'order'], rich=True)
+       self._set_field_placeholders('pretix_ticket_transfer_pending_payment_subject', ['event', 'order'])
+       self._set_field_placeholders('pretix_ticket_transfer_initiated_mailtext', ['event', 'order'], rich=True)
+       self._set_field_placeholders('pretix_ticket_transfer_initiated_subject', ['event', 'order'])
+       self._set_field_placeholders('pretix_ticket_transfer_completed_old_owner_mailtext', ['event', 'order'], rich=True)
+       self._set_field_placeholders('pretix_ticket_transfer_completed_old_owner_subject', ['event', 'order'])
+       self._set_field_placeholders('pretix_ticket_transfer_completed_new_owner_mailtext', ['event', 'order'], rich=True)
+       self._set_field_placeholders('pretix_ticket_transfer_completed_new_owner_subject', ['event', 'order'])
 
     def clean(self):
         d = super().clean()

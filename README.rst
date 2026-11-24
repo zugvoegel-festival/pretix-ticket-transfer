@@ -1,9 +1,26 @@
-Ticket Transfer
+Ticket Transfer (Zugvögel)
 ==========================
 
-This is a plugin for `pretix`_. 
+This is a plugin for `pretix`_.
 
-Allow transferring tickets to a new account
+Allow transferring tickets to a new account, including an optional
+payment-and-refund flow where the shop mediates settlement between the
+old and new owner.
+
+Based on
+--------
+
+This plugin is based on Kulturkosmos' open-source
+`pretix-ticket-transfer`_ plugin (Apache License 2.0).
+
+It is maintained as an independent Zugvögel Festival fork. We keep the
+Kulturkosmos repository as a secondary git remote named ``upstream`` for
+selective pulls; we do not track it as the product source of truth.
+
+To add the secondary remote locally::
+
+    git remote add upstream https://git.kulturkosmos.de/ticketing/pretix-ticket-transfer.git
+    git fetch upstream
 
 Development setup
 -----------------
@@ -44,8 +61,8 @@ To automatically check for these issues before you commit, you can run ``.instal
 License
 -------
 
-
-Copyright 2022 alice
+Copyright 2022 alice (Kulturkosmos)
+Copyright 2026 Zugvögel Festival
 
 Released under the terms of the Apache License 2.0
 
@@ -53,3 +70,4 @@ Released under the terms of the Apache License 2.0
 
 .. _pretix: https://github.com/pretix/pretix
 .. _pretix development setup: https://docs.pretix.eu/en/latest/development/setup.html
+.. _pretix-ticket-transfer: https://git.kulturkosmos.de/ticketing/pretix-ticket-transfer

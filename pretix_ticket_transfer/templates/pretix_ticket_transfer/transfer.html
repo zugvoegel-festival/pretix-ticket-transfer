@@ -18,7 +18,7 @@
 {% csrf_token %}
 
 {% if step3 %}
-<div class="panel panel-default">
+<div class="panel panel-default panel-confirm">
     <div class="panel-heading">
         <h3 class="panel-title">{% trans "Confirm ticket transfer" %}</h3>
     </div>
@@ -48,8 +48,8 @@
             {% if bank_info.bank_name %}<p><strong>{% trans "Bank Name" %}:</strong> {{ bank_info.bank_name }}</p>{% endif %}
         </section>
 
-        <h4>{% trans "Tickets" %}:</h4>
-        <div role="table" class="cart ttcart" aria-label="Selected tickets">
+        <h4>{% trans "Selected ticket(s)" %}:</h4>
+        <div role="table" class="cart ttcart" aria-label="{% trans "Selected ticket(s)" %}">
             {% for i in pos %}
                 <input type="hidden" name="pos[]" value="{{i.id}}" />
                 <div role="rowgroup">
@@ -194,18 +194,20 @@
 </div>
 {% endif %}
 
-<div class="panel panel-default">
+<div class="panel panel-default panel-confirm">
     <div class="panel-heading">
-        <h3 class="panel-title">{% trans "Select tickets" %}</h3>
+        <h3 class="panel-title">{% trans "Select ticket(s)" %}</h3>
     </div>
     <div class="panel-body">
         {% for i in orderpositions %}
             <div class="checkbox">
                 <label for="select_pos_{{i.id}}">
-                    <input id="select_pos_{{i.id}}" type="checkbox" name="pos[]" value="{{i.id}}" {% if i in pos %}checked{% endif %}/>
-                    #{{i.positionid}} {{i.item.name}}
-                    {% if i.variation %}{{i.variation}}{% endif %}
-                    {% if i.attendee_name_cached %} - {{i.attendee_name_cached}}{% endif %}
+                    <input id="select_pos_{{i.id}}" type="checkbox" class="checkbox" name="pos[]" value="{{i.id}}" {% if i in pos %}checked{% endif %}/>
+                      <p>
+                        #{{i.positionid}} {{i.item.name}}
+                        {% if i.variation %}{{i.variation}}{% endif %}
+                        {% if i.attendee_name_cached %} - {{i.attendee_name_cached}}{% endif %}
+                      </p>
                 </label>
             </div>
         {% endfor %}
@@ -226,10 +228,10 @@
             <div class="col-md-9">
                 <input id="tt-email-0" class="form-control" type="email" name="email" value="{{email}}"
                     autocomplete="section-contact email"
-                    title="{% trans "Please enter the email address of the person who should recieve the tickets." %}" required
+                    title="{% trans "Please enter the email address of the person who should receive the ticket(s)." %}" required
                     aria-describedby="help-for-tt-email-0" />
                 <p class="help-block" id="help-for-tt-email-0">
-                    {% trans "Please enter the email address of the person who should recieve the tickets." %}
+                    {% trans "Please enter the email address of the person who should receive the ticket(s)." %}
                 </p>
             </div>
         </div>
