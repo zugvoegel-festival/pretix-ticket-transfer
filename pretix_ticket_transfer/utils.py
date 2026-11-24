@@ -1,5 +1,4 @@
 from pretix.base.templatetags.rich_text import rich_text
-from pretix.presale.signals import checkout_confirm_messages
 
 
 def get_confirm_messages(event):

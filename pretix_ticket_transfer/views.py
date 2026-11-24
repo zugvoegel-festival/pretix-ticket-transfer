@@ -13,7 +13,7 @@ from django.contrib import messages
 from django.db import transaction
 from django.utils.translation import gettext_lazy as _
 from i18nfield.strings import LazyI18nString
-from pretix.base.models import Event, Order, OrderPosition
+from pretix.base.models import Event, Order
 from pretix.base.forms import SettingsForm
 from pretix.base.settings import LazyI18nStringList
 from pretix.control.permissions import EventPermissionRequiredMixin
@@ -104,7 +104,6 @@ class TicketTransferSettingsForm(SettingsForm):
         help_text=_('placeholders: {list}'.format(list = ', '.join(['{code}', '{event}', '{event_slug}', '{name}', '{total}', '{total_with_currency}', '{url}']))),
         widget_kwargs={'attrs': { 'rows': '8' }} )
 
-    # New flow: Pending payment email (to new owner)
     pretix_ticket_transfer_pending_payment_subject = I18nFormField(
         label=_("New owner - pending payment email subject"),
         required=False,
@@ -118,7 +117,6 @@ class TicketTransferSettingsForm(SettingsForm):
         help_text=_('placeholders: {list}'.format(list = ', '.join(['{code}', '{event}', '{event_slug}', '{name}', '{total}', '{total_with_currency}', '{url}', '{payment_url}']))),
         widget_kwargs={'attrs': { 'rows': '8' }} )
 
-    # New flow: Transfer initiated email (to old owner)
     pretix_ticket_transfer_initiated_subject = I18nFormField(
         label=_("Old owner - transfer initiated email subject"),
         required=False,
@@ -132,7 +130,6 @@ class TicketTransferSettingsForm(SettingsForm):
         help_text=_('placeholders: {list}'.format(list = ', '.join(['{code}', '{event}', '{event_slug}', '{name}', '{total}', '{total_with_currency}', '{url}']))),
         widget_kwargs={'attrs': { 'rows': '8' }} )
 
-    # New flow: Transfer completed email (to old owner)
     pretix_ticket_transfer_completed_old_owner_subject = I18nFormField(
         label=_("Old owner - transfer completed email subject"),
         required=False,
@@ -146,7 +143,6 @@ class TicketTransferSettingsForm(SettingsForm):
         help_text=_('placeholders: {list}'.format(list = ', '.join(['{code}', '{event}', '{event_slug}', '{name}', '{total}', '{total_with_currency}', '{url}']))),
         widget_kwargs={'attrs': { 'rows': '8' }} )
 
-    # New flow: Transfer completed email (to new owner)
     pretix_ticket_transfer_completed_new_owner_subject = I18nFormField(
         label=_("New owner - transfer completed email subject"),
         required=False,
@@ -160,7 +156,6 @@ class TicketTransferSettingsForm(SettingsForm):
         help_text=_('placeholders: {list}'.format(list = ', '.join(['{code}', '{event}', '{event_slug}', '{name}', '{total}', '{total_with_currency}', '{url}']))),
         widget_kwargs={'attrs': { 'rows': '8' }} )
 
-    # Optional: Formular-Texte
     pretix_ticket_transfer_bank_details_intro = I18nFormField(
         label=_("Bank details form - introduction text"),
         required=False,
@@ -452,8 +447,6 @@ class TicketTransfer(EventViewMixin, OrderDetailMixin, TemplateView):
 
 class TicketTransferAccept(EventViewMixin, OrderDetailMixin, TemplateView):
     def post(self, request, *args, **kwargs):
-        positions = self.order.positions.select_related('item')
-
         msgs = get_confirm_messages(self.request.event)
         for key, msg in msgs.items():
             if request.POST.get('confirm_{}'.format(key)) != 'yes':
@@ -490,48 +483,30 @@ class TicketTransferStats(EventPermissionRequiredMixin, TemplateView):
         ctx = super().get_context_data(*args, **kwargs)
         ctx['rows'] = []
 
-        map = {
+        status_map = {
             TICKET_TRANSFER_START: 'start',
             TICKET_TRANSFER_DONE: 'done',
             TICKET_TRANSFER_SENT: 'sent',
-        } 
-        counter = {'all':0, 'start':0, 'done':0, 'sent':0}
-        def count(*i):
-          counter['all']+= 1
-          for k in i:
-            k = map.get(k,k)
-            print(f'k {k}')
-            counter[k] = counter.get(k,0) + 1
+        }
+        counter = {'all': 0, 'start': 0, 'done': 0, 'sent': 0}
 
+        def count(*items):
+            counter['all'] += 1
+            for k in items:
+                k = status_map.get(k, k)
+                counter[k] = counter.get(k, 0) + 1
 
         orders = Order.objects.filter(
-                event=self.request.event,
-                meta_info__contains='"ticket_transfer":')
+            event=self.request.event,
+            meta_info__contains='"ticket_transfer":')
         for o in orders:
-          count(o.meta_info_data.get('ticket_transfer'), f'{o.status}')
-          #count(o.meta_info_data.get('ticket_transfer'))
-
+            count(o.meta_info_data.get('ticket_transfer'), f'{o.status}')
 
         sent = Order.objects.filter(
-                event=self.request.event,
-                meta_info__contains='"ticket_transfer_sent": 23')
+            event=self.request.event,
+            meta_info__contains='"ticket_transfer_sent": 23')
         for o in sent:
-          count(o.meta_info_data.get('ticket_transfer_sent'), f'sent_{o.status}')
+            count(o.meta_info_data.get('ticket_transfer_sent'), f'sent_{o.status}')
 
-        print(counter)
         ctx['counter'] = counter
-
         return ctx
-
-
-        #orders = Order.objects.raw("select id,code,meta_info from pretixbase_order where meta_info like '%%ticket_transfer%%'")
-
-        #from django.db import connection
-        #with connection.cursor() as cursor:
-        #  cursor.execute(
-        #      """
-        #        select meta_info::json->'ticket_transfer' #>> '{}' as ticket_transfer from pretixbase_order where meta_info like '%ticket_transfer%'
-        #      """)
-
-        #orders = Order.objects.filter(order__meta_info__ticket_transfer)
-        #orders = Order.objects.raw("select id,code,meta_info from pretixbase_order where meta_info like '%%ticket_transfer%%'")
