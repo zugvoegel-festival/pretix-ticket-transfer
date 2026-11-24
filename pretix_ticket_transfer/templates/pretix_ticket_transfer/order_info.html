@@ -7,6 +7,15 @@
        <h3 class="panel-title">{{ title }}</h3>
    </div>
    <div class="panel-body">
+    {% if pending %}
+       <p>
+         {% blocktrans trimmed with code=pending.to_order email=pending.to_email amount=pending.amount_display %}
+           A transfer to {{ email }} (order {{ code }}) is waiting for payment.
+           Refund amount after payment: {{ amount }}.
+         {% endblocktrans %}
+       </p>
+    {% endif %}
+
     {% if pos %}
        <p>
          {{message}}
@@ -21,7 +30,7 @@
   {% endif %}
 
   {% if log %}
-    <h4>{% trans "Transfered tickets" %}</h4>
+    <h4>{% trans "Transferred tickets" %}</h4>
       <ul>
         {% for i in log %}
           <li>{{i}}</li>

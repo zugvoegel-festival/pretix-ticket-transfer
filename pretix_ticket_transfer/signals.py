@@ -95,7 +95,7 @@ def orderinfo_target(sender, order, request, **kwargs):
 
 @receiver(order_info, dispatch_uid="ticket_transfer_order_info_source")
 def orderinfo_source(sender, order, request, **kwargs):
-  if order.status != Order.STATUS_PAID and order.status != Order.STATUS_CANCELED:
+  if order.status != Order.STATUS_PAID:
     return False
 
   if order.meta_info_data.get('ticket_transfer') == TICKET_TRANSFER_START:
@@ -104,9 +104,16 @@ def orderinfo_source(sender, order, request, **kwargs):
   event = order.event
   pos = user_split_positions(order)
   log = []
+  pending = (order.meta_info_data or {}).get('ticket_transfer_pending')
+  if pending and pending.get('amount') is not None:
+    pending = dict(pending)
+    pending['amount_display'] = money_filter(Decimal(pending['amount']), event.currency)
 
   for entry in order.all_logentries():
-    if entry.action_type == 'pretix.event.order.changed.split':
+    if entry.action_type in (
+        'pretix.event.order.changed.split',
+        'pretix_ticket_transfer.changed.split',
+    ):
       data = json.loads(entry.data)
       old_item = str(event.items.get(pk=data['old_item']))
       if data['old_variation']:
@@ -115,7 +122,7 @@ def orderinfo_source(sender, order, request, **kwargs):
           old_item=escape(old_item),
           old_price=money_filter(Decimal(data['old_price']), event.currency))))
 
-  if not pos and not log:
+  if not pos and not log and not pending:
     return False
 
   ctx = {
@@ -123,6 +130,7 @@ def orderinfo_source(sender, order, request, **kwargs):
       'order': order,
       'pos': pos,
       'log': log,
+      'pending': pending,
       'event': sender,
       'title': str( sender.settings.get('pretix_ticket_transfer_title', as_type=LazyI18nString )),
       'message': str(rich_text( sender.settings.get('pretix_ticket_transfer_message', as_type=LazyI18nString ))),
@@ -134,7 +142,9 @@ def orderinfo_source(sender, order, request, **kwargs):
 @receiver(allow_ticket_download, dispatch_uid="ticket_transfer_allow_ticket_download")
 def ticket_transfer_allow_ticket(sender, **kwargs):
     order = kwargs.get('order')
-    if order.meta_info_data.get('ticket_transfer') == TICKET_TRANSFER_START:
+    status = order.meta_info_data.get('ticket_transfer')
+    # Block downloads until the recipient accepts (direct flow) or pays (payment flow)
+    if status in (TICKET_TRANSFER_START, TICKET_TRANSFER_PENDING_PAYMENT):
       return False
     return True
 

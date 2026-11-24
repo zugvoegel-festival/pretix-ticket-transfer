@@ -31,10 +31,9 @@
         <input type="hidden" name="bank_iban" value="{{ bank_info.iban }}" />
         <input type="hidden" name="bank_bic" value="{{ bank_info.bic }}" />
         <input type="hidden" name="bank_name" value="{{ bank_info.bank_name }}" />
-        <input type="hidden" name="step2" value="1" />
         <input type="hidden" name="step3" value="1" />
-        {% for pid in pids %}
-        <input type="hidden" name="pos[]" value="{{ pid }}" />
+        {% for i in pos %}
+        <input type="hidden" name="pos[]" value="{{ i.id }}" />
         {% endfor %}
 
         <h4>{% trans "Recipient" %}:</h4>
@@ -51,7 +50,6 @@
         <h4>{% trans "Selected ticket(s)" %}:</h4>
         <div role="table" class="cart ttcart" aria-label="{% trans "Selected ticket(s)" %}">
             {% for i in pos %}
-                <input type="hidden" name="pos[]" value="{{i.id}}" />
                 <div role="rowgroup">
                     <div role="row" class="row cart-row">
                         <div role="cell" class="product">
@@ -70,10 +68,15 @@
                 </div>
             </div>
         </div>
+        <p class="help-block">
+            {% blocktrans trimmed %}
+                This is the amount the new owner will be asked to pay, and the amount that will be refunded to your bank account after payment.
+            {% endblocktrans %}
+        </p>
 
         <div class="row checkout-button-row">
             <div class="col-md-4">
-                <button name="step2" value="1" type="submit" class="btn btn-block btn-primary">{% trans "Go back" %}</button>
+                <button name="go_back" value="step2" type="submit" class="btn btn-block btn-default">{% trans "Go back" %}</button>
             </div>
             <div class="col-md-4 col-md-offset-4">
                 <button name="confirm" value="1" type="submit" class="btn btn-block btn-primary">{% trans "Confirm ticket transfer" %}</button>
@@ -171,7 +174,7 @@
 
         <div class="row checkout-button-row">
             <div class="col-md-4">
-                <button name="step2" value="" type="submit" class="btn btn-block btn-primary">{% trans "Go back" %}</button>
+                <button name="go_back" value="step1" type="submit" class="btn btn-block btn-default">{% trans "Go back" %}</button>
             </div>
             <div class="col-md-4 col-md-offset-4">
                 <button name="step3" value="1" type="submit" class="btn btn-block btn-primary">{% trans "Continue" %}</button>
@@ -202,11 +205,12 @@
         {% for i in orderpositions %}
             <div class="checkbox">
                 <label for="select_pos_{{i.id}}">
-                    <input id="select_pos_{{i.id}}" type="checkbox" class="checkbox" name="pos[]" value="{{i.id}}" {% if i in pos %}checked{% endif %}/>
+                    <input id="select_pos_{{i.id}}" type="checkbox" class="checkbox" name="pos[]" value="{{i.id}}" {% if i.id in selected_pids %}checked{% endif %}/>
                       <p>
                         #{{i.positionid}} {{i.item.name}}
                         {% if i.variation %}{{i.variation}}{% endif %}
                         {% if i.attendee_name_cached %} - {{i.attendee_name_cached}}{% endif %}
+                        — {{ i.price_with_addons|money:event.currency }}
                       </p>
                 </label>
             </div>

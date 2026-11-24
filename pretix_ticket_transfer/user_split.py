@@ -32,7 +32,16 @@ class TicketTransferChangeManager(OrderChangeManager):
     """
     dont complete_cancel check
     no notify
+
+    payment_mediated: when True, create a split order that the new owner must
+    pay in full. Do not copy order-level fees onto the new order, and do not
+    create offsetting payments/refunds (those would zero out the amount due
+    and leave the refund flow inconsistent with the UI total).
     """
+    def __init__(self, *args, payment_mediated=False, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.payment_mediated = payment_mediated
+
     def commit(self, check_quotas=True):
         if self._committed:
             # an order change can only be committed once
@@ -111,7 +120,20 @@ class TicketTransferChangeManager(OrderChangeManager):
             op.save()
             op.answers.clear()
 
+        # Ticket price only (addons are included in split_positions via ocm.split)
         split_order.total = sum([p.price for p in split_positions if not p.canceled])
+
+        if self.payment_mediated:
+            # New owner pays the ticket total shown in the transfer UI.
+            # Leave original order overpaid until the real bank refund runs.
+            split_order.status = Order.STATUS_PENDING
+            split_order.set_expires(
+                now(),
+                list(set(p.subevent_id for p in split_positions if p.subevent_id))
+            )
+            split_order.save()
+            order_split.send(sender=self.order.event, original=self.order, split_order=split_order)
+            return split_order
 
         for fee in self.order.fees.exclude(fee_type=OrderFee.FEE_TYPE_PAYMENT):
             new_fee = modelcopy(fee)
@@ -278,23 +300,39 @@ def notify_user_transfer_completed_new_owner(order, user=None, auth=None, invoic
         except SendMailException:
             logger.exception('Ticket transfer completed (new owner) email could not be sent')
 
+def transfer_amount_for_positions(positions):
+    """Amount the new owner should pay / old owner should be refunded.
+
+    Matches the UI "Total worth of ticket transfer": sum of selected
+    admission positions including non-canceled addons. Order-level fees from
+    the original purchase are intentionally excluded.
+    """
+    total = Decimal('0.00')
+    for p in positions:
+        total += getattr(p, 'price_with_addons', p.price)
+    return total
+
+
 def user_split_positions( order, pids=None ):
 
   pos = []
   positions = order.positions.select_related('item')
   if pids:
+    # Deduplicate: confirmation step historically posted pos[] twice
+    pids = list(dict.fromkeys(pids))
     positions = positions.filter(pk__in=pids)
   for p in positions:
     if not p.item.admission or p.addon_to:
       continue
     if p.all_checkins.exists():
       continue
-    if order.event.settings.get( 'pretix_ticket_transfer_items_all' ) == None:
-      continue   # default to false
-    elif order.event.settings.get( 'pretix_ticket_transfer_items_all' ) == True:
+    items_all = order.event.settings.get('pretix_ticket_transfer_items_all')
+    if items_all is None or items_all is True:
+      # Settings form defaults the checkbox to True when unset; match that.
       pos.append( p )
-    elif order.event.settings.get( 'pretix_ticket_transfer_items_all' ) == False:
-      if p.item.id in json.loads( order.event.settings.get( 'pretix_ticket_transfer_items' )):
+    elif items_all is False:
+      allowed = order.event.settings.get('pretix_ticket_transfer_items')
+      if allowed and p.item.id in json.loads(allowed):
         pos.append( p )
   for p in pos:
     p.price_with_addons = p.price
@@ -311,13 +349,19 @@ def initiate_transfer_with_payment(order, pids, data):
     """
     with transaction.atomic():
         # Lock selected positions for the duration of the transfer
+        pids = list(dict.fromkeys(pids))
         list(OrderPosition.objects.filter(pk__in=pids).select_for_update(nowait=True))
         ocm = TicketTransferChangeManager(
             order,
             notify=False,
-            reissue_invoice=False)
+            reissue_invoice=False,
+            payment_mediated=True)
 
         pos = user_split_positions(order, pids)
+        if not pos:
+            return None
+
+        transfer_amount = transfer_amount_for_positions(pos)
         success = 0
         for p in pos:
             p.attendee_name_parts = {}
@@ -342,8 +386,9 @@ def initiate_transfer_with_payment(order, pids, data):
             if data.get('email'):
                 split_order.email = data.get('email')
 
-            # Set new order to PENDING status - requires payment
+            # Reaffirm pending payment state (also set in _create_split_order)
             split_order.status = Order.STATUS_PENDING
+            split_order.total = transfer_amount
             split_order.set_expires(now(), list(set(p.subevent_id for p in split_order.positions.all() if p.subevent_id)))
             
             # Store transfer metadata
@@ -356,7 +401,8 @@ def initiate_transfer_with_payment(order, pids, data):
             split_order.meta_info = json.dumps(meta)
             split_order.save()
 
-            # Store bank info and transfer info in original order
+            # Store bank info and transfer info in original order.
+            # amount must match UI total / new-order total (ticket+addons only).
             meta = order.meta_info_data
             meta['ticket_transfer'] = ''
             meta['ticket_transfer_pending'] = {
@@ -364,7 +410,7 @@ def initiate_transfer_with_payment(order, pids, data):
                 'to_email': data.get('email'),
                 'bank_info': data.get('bank_info', {}),
                 'positions': pids,
-                'amount': str(split_order.total)
+                'amount': str(transfer_amount)
             }
             order.meta_info = json.dumps(meta)
             order.save()
